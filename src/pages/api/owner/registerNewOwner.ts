@@ -4,7 +4,9 @@ import multer from 'multer';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-import * as fs from 'node:fs/promises';
+//import * as fs from 'node:fs/promises';
+const { Readable } = require('stream');
+import { Upload } from "@aws-sdk/lib-storage";
 
 export const config : PageConfig = {
     api : {
@@ -25,15 +27,18 @@ const client = new S3Client({
     region: process.env.NEXT_PUBLIC_S3_REGION,
 })
 
-const storage = multer.diskStorage({
-                destination: path.join("src", "pages", "api", "uploads"),
-                filename: function (req, file, cb) {
-                    console.log({file})
-                    let extenstion = file.mimetype.split("/")[1]
-                    const uniqueSuffix = Date.now() +'-' + Math.round(Math.random()*1E9)
-                    cb(null, file.fieldname + '-' + uniqueSuffix + '.' + extenstion)
-                }
-            })
+// const storage = multer.diskStorage({
+//                 destination: path.join("src", "pages", "api", "uploads"),
+//                 filename: function (req, file, cb) {
+//                     console.log({file})
+//                     let extenstion = file.mimetype.split("/")[1]
+//                     const uniqueSuffix = Date.now() +'-' + Math.round(Math.random()*1E9)
+//                     cb(null, file.fieldname + '-' + uniqueSuffix + '.' + extenstion)
+//                 }
+//             })
+// const upload = multer({storage}).array('files')
+
+const storage = multer.memoryStorage()
 const upload = multer({storage}).array('files')
 
 //wrong types of multer
@@ -52,33 +57,36 @@ router.post(async (req, res) => {
             boxCricketCity,
             boxCricketArea,
             boxCricketLandmark,
-            boxCricketImages,
             bookingSlots,
             minSlotPrice,
             maxSlotPrice,
             boxCricketFacilities
         } 
            = req.body
-            
+
         const boxCricketImages1: any[] = []
-        req.files.map(file => {
-            boxCricketImages1.push(file.filename)    
-        })
+        req.files.map(async (file, index) => {
+            const buffer = file.buffer
+            const stream = Readable.from(buffer);
+
+            let extenstion = file.mimetype.split("/")[1]
+            const uniqueSuffix = Date.now() +'-' + Math.round(Math.random()*1E9)
+            const fileName = file.fieldname + '-' + uniqueSuffix + '.' + extenstion
+
+            const upload = new Upload({
+                client: client,
+                params: {
+                    Bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
+                    Key: fileName,
+                    Body: stream,
+                    ContentType: 'text/plain',
+                },
+            });
         
-            //s3 upload
-            // const fileContent = await fs.readFile(path.join("public", "uploads", req.file.filename))
-            // const putCommand = new PutObjectCommand({
-            //     Bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
-            //     Key: req.file.filename,
-            //     Body: fileContent
-            // })
-            
-            // //s3 upload file
-            // await client.send(putCommand)
-            // //remove local file
-            // await fs.unlink(path.join("public", "uploads", req.file.filename))
-
-
+            await upload.done()
+            boxCricketImages1.push("https://myawsaccount1.s3.ap-south-1.amazonaws.com/" + fileName)
+            //console.log({boxCricketImages1})
+            if(index === req.files.map.length-1){
             //db create
             const newOwner = await prisma.owner.create({
                     data : {
@@ -102,10 +110,10 @@ router.post(async (req, res) => {
                             ]
                         } 
                     }
-            })
-            
-            return res.json({status: 201, newOwner})
-             
+            })  
+                return res.json({status: 201, newOwner})
+            }   
+        })             
         } catch(err: unknown){
           console.error({err})
           return res.status(500).json({status: 500, message : "something went wrong", err})

@@ -111,7 +111,7 @@ export default function Home() {
                       title="green iguana"
                     /> */}
                     <Carousel autoplay>
-                      {box.boxCricketImages.map((image, index) => (
+                      {box.boxCricketImages.map((image: string, index) => (
                         <div
                           key={index}
                           style={{ width: "100%", height: "400px" }}
@@ -121,7 +121,8 @@ export default function Home() {
                             //style={contentStyle}
                             width="100%"
                             height="250px"
-                            src={`/api/images/${image}`}
+                            //src={`/api/images/${image}`}
+                            src={image}
                           />
                         </div>
                       ))}
