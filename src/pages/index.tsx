@@ -47,9 +47,10 @@ export default function Home() {
       try {
         setLoading(true);
         const response = await fetch("/api/boxCricket/getAllBoxCrickets");
+        console.log({ response });
         const result = await response.json();
         setLoading(false);
-        //console.log({ result });
+        console.log({ result });
         if (result.status === 200) {
           setBoxCrickets(result.boxCrickets);
         } else {
@@ -96,11 +97,12 @@ export default function Home() {
                 <TextField
                   //variant="standard"
                   placeholder="search box cricket near you"
-                  sx={{ width: "300px" }}
-                  //fullWidth
+                  // sx={{ width: "300px" }}
+                  //size="small"
+                  fullWidth
                   InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
+                    startAdornment: (
+                      <InputAdornment position="start">
                         <SearchIcon />
                       </InputAdornment>
                     ),

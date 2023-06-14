@@ -15,7 +15,13 @@ const navItems = [
 
 const Header = () => {
   return (
-    <AppBar sx={{ backgroundColor: "rgb(249, 250, 251)" }} component="nav">
+    <AppBar
+      sx={{
+        // backgroundColor: "rgb(249, 250, 251)"
+        backgroundColor: "#fff",
+      }}
+      component="nav"
+    >
       <Toolbar>
         <IconButton
           color="inherit"
