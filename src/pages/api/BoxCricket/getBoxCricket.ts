@@ -6,6 +6,7 @@ const prisma = new PrismaClient()
 export default async function handler (req:NextApiRequest, res:NextApiResponse) {
     if (req.method === "GET") {
         const boxCricketId = req.query.boxCricketId
+        console.log({boxCricketId})
         try {
             const boxCricket = await prisma.boxcricket.findFirst({
                 where: {id: boxCricketId as string}

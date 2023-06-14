@@ -161,7 +161,7 @@ const MainSignIn = ({
         message={message}
       />
       <Typography align={"right"} sx={styles.link}>
-        <Link href={pageType === "signin" ? "/signup" : "/signin"}>
+        <Link href={pageType === "signin" ? "/user/signup" : "/user/signin"}>
           {pageType === "signin"
             ? "Don't have an Account? Signup"
             : "Already have an account? Sign in"}

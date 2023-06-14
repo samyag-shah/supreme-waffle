@@ -15,17 +15,17 @@ export default async function handler(
 ) {
   if(req.method === "POST"){
     try {
-      const {phone, loginMethod} : 
-      {phone: string, loginMethod: Method}= req.body
-      if(loginMethod === "Phone") {
+      const {phone} = req.body
+      
         const user = await prisma.user.findFirst({
           where: { phone },
         })
+        
         if (user !== null){
-          return res.status(200).json({isRegistered: true})  
-        }
-        return res.status(200).json({isRegistered: false})  
-      }
+          return res.status(200).json({status: 200, isRegistered: true})  
+        } 
+        return res.status(200).json({status: 200, isRegistered: false})  
+      
     } catch(err: unknown){
       console.error({err})
       return res.status(500).json({message : "something went wrong", err})

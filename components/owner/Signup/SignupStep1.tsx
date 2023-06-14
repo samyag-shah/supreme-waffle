@@ -1,7 +1,14 @@
 import React, { useState, Dispatch, SetStateAction } from "react";
 
 //mui
-import { Box, Typography, Grid, InputAdornment, Link } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Card,
+  Grid,
+  InputAdornment,
+  Link,
+} from "@mui/material";
 import Input from "../../common/Input/Input";
 import CommonButton from "../../common/Button/CommonButton";
 

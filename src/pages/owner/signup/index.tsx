@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Box, Container } from "@mui/material";
+import { Box, Container, Card } from "@mui/material";
 import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
@@ -37,43 +37,45 @@ const Signup = () => {
       <Box
         sx={{
           minHeight: "100vh",
-          border: "1px solid",
+          width: "100%",
+          minWidth: "100%",
           display: "flex",
           alignItems: "center",
+          backgroundColor: "rgb(249, 250, 251)",
         }}
       >
-        <Container
-          maxWidth={"sm"}
-          sx={{ my: 2, border: "1px solid", borderRadius: "1rem" }}
-        >
-          <Box sx={{ width: "100%", my: "2rem" }}>
-            <Stepper activeStep={step} alternativeLabel>
-              {steps.map((label) => (
-                <Step key={label}>
-                  <StepLabel>{label}</StepLabel>
-                </Step>
-              ))}
-            </Stepper>
-          </Box>
-          {/* <Divider /> */}
+        <Container maxWidth={"sm"} disableGutters>
+          <Card
+            sx={{ minWidth: "350px", overflowX: "auto", padding: "1rem 2rem" }}
+          >
+            <Box sx={{ my: "2rem" }}>
+              <Stepper activeStep={step} alternativeLabel>
+                {steps.map((label) => (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+            </Box>
 
-          {step === 0 && (
-            <SignupStep1
-              signupState={signupState}
-              setStep={setStep}
-              setSignupState={setSignupState}
-            />
-          )}
+            {step === 0 && (
+              <SignupStep1
+                signupState={signupState}
+                setStep={setStep}
+                setSignupState={setSignupState}
+              />
+            )}
 
-          {step === 1 && (
-            <SignupStep2
-              setStep={setStep}
-              signupState={signupState}
-              setSignupState={setSignupState}
-            />
-          )}
+            {step === 1 && (
+              <SignupStep2
+                setStep={setStep}
+                signupState={signupState}
+                setSignupState={setSignupState}
+              />
+            )}
 
-          {step === 2 && <SignupStep3 signupState={signupState} />}
+            {step === 2 && <SignupStep3 signupState={signupState} />}
+          </Card>
         </Container>
       </Box>
     </>

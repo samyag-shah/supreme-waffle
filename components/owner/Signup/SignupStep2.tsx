@@ -109,6 +109,17 @@ const SignupStep2 = ({ setSignupState, setStep, signupState }: props) => {
     file,
     fileList: newFileList,
   }) => {
+    let newFileList1 = newFileList.map((file1) => {
+      if (file.uid === file1.uid) {
+        return {
+          ...file1,
+          status: "done",
+        };
+      } else {
+        return file1;
+      }
+    });
+    //console.log({ file });
     if (
       file.type === "image/png" ||
       file.type === "image/jpeg" ||
@@ -116,7 +127,7 @@ const SignupStep2 = ({ setSignupState, setStep, signupState }: props) => {
     ) {
       if (file.size && file.size < 2 * 1024 * 1024) {
         clearErrors("boxCricketImages");
-        setValue("boxCricketImages", newFileList);
+        setValue("boxCricketImages", newFileList1);
       } else {
         setError("boxCricketImages", {
           type: "custom",

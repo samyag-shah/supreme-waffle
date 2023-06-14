@@ -5,7 +5,7 @@ export const styles = {
         minwidth: '100vw',
         display: 'flex',
         alignItems: 'center',
-        backgroundColor: 'rgb(231, 235, 240)'
+        backgroundColor: "rgb(249, 250, 251)",
     },
     container: {
         borderRadius: '10px',

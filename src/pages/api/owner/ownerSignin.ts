@@ -1,5 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
+
+import { PrismaClient } from "@prisma/client";
 import jwt from 'jsonwebtoken'
 
 const prisma = new PrismaClient()
@@ -7,29 +8,29 @@ export default async function handler (req:NextApiRequest, res:NextApiResponse) 
     if (req.method === "POST") {
         try {
             const { phone } = req.body
-            const fetchedUser = await prisma.owner.findFirst({
+            const owner = await prisma.owner.findFirst({
                 where : {
                     ownerPhone: phone
                 }
             })
-        if(fetchedUser){
-            const {ownerName, ownerEmail, ownerPhone} = fetchedUser
+
+        if (owner) {
+            const {ownerPhone, id} = owner
             const payload = {
-                ownerName, ownerEmail, ownerPhone,
-                exp: Date.now()/1000 + 1*60
+                ownerId: id,
+                ownerPhone,
+                exp: Date.now()/1000 + 24*60*60
             } 
             const token = jwt.sign(payload, process.env.JWT_SECRET_KEY || "")
-            res.json({status: 200, access_token: token, user: {ownerName, ownerEmail, ownerPhone}})
+            res.json({status: 200, access_token: token, owner})
         } else {
-            res.json({status: 500, message: "no user found"})
+            res.json({status: 404, message: "not found"})
         }
         } catch (err) {
             console.error(err)
-            res.json({status: 500, message: "somthing wnetn wrong"})
+            res.json({status: 500, message: "somthing went wrong"})
         }
-        
-
     } else {
-        res.json({status: 500, message: "Incorrect method"})
+        res.json({status: 405, message: "Incorrect method"})
     }
 }
