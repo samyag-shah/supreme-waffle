@@ -1,4 +1,4 @@
-import React, { useEffect, Dispatch, SetStateAction } from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import Link from "next/link";
 
 import { Grid, Typography } from "@mui/material";
@@ -16,6 +16,7 @@ import CommonButton from "../../common/Button/CommonButton";
 import FeedBack from "../../common/Feedback/FeedBack";
 import { signupType } from "@/pages/user/signup";
 import { styles } from "../../styles/userSigninStyles";
+import { Spin } from "antd";
 
 const schema = yup
   .object({
@@ -29,19 +30,21 @@ const schema = yup
   .required();
 type FormData = yup.InferType<typeof schema>;
 
+//types
 interface props {
-  page: number;
+  //page: number;
   pageType: string;
   setPage: Dispatch<SetStateAction<number>>;
   signupState: signupType;
   setSignupState: Dispatch<SetStateAction<signupType>>;
   setPromise: Dispatch<SetStateAction<ConfirmationResult | undefined>>;
   setCaptcha: Dispatch<SetStateAction<RecaptchaVerifier | undefined>>;
+  captcha: RecaptchaVerifier | undefined;
 }
 
 const MainSignIn = ({
   setPromise,
-  page,
+  captcha,
   setPage,
   signupState,
   setSignupState,
@@ -51,7 +54,6 @@ const MainSignIn = ({
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
@@ -76,58 +78,52 @@ const MainSignIn = ({
     setOpenFeedBack(false);
   };
 
-  //Step1
-  useEffect(() => {
-    if (signupState.phone) {
-      setValue("phone", signupState.phone);
-    }
-  }, [page]);
-
   const onSubmit = async (data: FormData) => {
     //"+16505551234"
     let phone = "+1" + data.phone;
+    //let phone = "+91" + data.phone;
 
     //check if user is already registered or not
-    setLoading(true);
-    const result = await fetch("/api/isUserRegisterd", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        loginMethod: "Phone",
-        phone: data.phone,
-      }),
-    });
-    const response = await result.json();
-    setLoading(false);
-
-    if (!response.isRegistered) {
-      //user is not registered
-      setSeverity("warning");
-      setMessage("This number is not registered");
-      setOpenFeedBack(true);
-    } else {
-      //user is registered
+    try {
       setLoading(true);
-      try {
-        setLoading(true);
-        const captcha = captchaVerifier();
-        const confirmationResult = await signInWithPhone(phone, captcha);
-        setLoading(false);
+      const result = await fetch("/api/user/isUserRegistered", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          loginMethod: "Phone",
+          phone: data.phone,
+        }),
+      });
+      const response = await result.json();
+
+      if (!response.isRegistered) {
+        //user is not registered
+        setSeverity("warning");
+        setMessage("This number is not registered");
+        setOpenFeedBack(true);
+      } else {
+        //user is registered
+        let captcha1;
+        if (!captcha) {
+          captcha1 = captchaVerifier();
+        } else {
+          captcha1 = captcha;
+        }
+        const confirmationResult = await signInWithPhone(phone, captcha1);
         setPromise(confirmationResult);
-        setCaptcha(captcha);
+        setCaptcha(captcha1);
         setSignupState({ ...signupState, ...data });
         setPage(2);
-      } catch (err) {
-        setLoading(false);
-        setSeverity("error");
-        setMessage("Something Went Wrong, Please try again");
-        setOpenFeedBack(true);
       }
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      setSeverity("error");
+      setMessage("Something Went Wrong, Please try again");
+      setOpenFeedBack(true);
     }
-
-    //setPage(2);
   };
 
   return (
@@ -146,20 +142,22 @@ const MainSignIn = ({
       </Grid>
       <CommonButton
         sx={styles.nextbtn}
-        variant="contained"
+        variant="outlined"
         fullWidth
         type="submit"
         id="sign-in-button"
         disabled={loading}
       >
-        Next
+        {loading ? <Spin /> : <b>Next</b>}
       </CommonButton>
+
       <FeedBack
         severity={severity}
         open={openFeedBack}
         handleClose={handleClose}
         message={message}
       />
+
       <Typography align={"right"} sx={styles.link}>
         <Link href={pageType === "signin" ? "/user/signup" : "/user/signin"}>
           {pageType === "signin"

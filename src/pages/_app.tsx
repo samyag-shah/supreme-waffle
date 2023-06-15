@@ -3,6 +3,7 @@ import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 // import type { Session } from "next-auth";
 // import { SessionProvider } from "next-auth/react";
+import GlobalStyles from "@mui/material/GlobalStyles";
 
 import { CssBaseline } from "@mui/material";
 import {
@@ -29,6 +30,14 @@ const userContextDefaultValue = {
 
 export const UserContext = createContext(userContextDefaultValue);
 
+const styles = {
+  body: {
+    overflow: "auto",
+  },
+  html: {
+    overflow: "auto",
+  },
+};
 export default function App({
   Component,
   pageProps: { ...pageProps },
@@ -50,6 +59,7 @@ export default function App({
     // <RouteGuard>
     <>
       <CssBaseline />
+      <GlobalStyles styles={styles} />
       <Component {...pageProps} />
     </>
     // </RouteGuard>

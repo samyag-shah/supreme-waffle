@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
 
-import { Container, Divider, Box, Typography } from "@mui/material";
+import { Container, Card, Divider, Box, Typography } from "@mui/material";
 import { ConfirmationResult, RecaptchaVerifier } from "firebase/auth";
 import { signInWithGmail } from "../../../../config/firebase/firebase";
 import { styles } from "../../../../components/styles/userSingupStyles";
@@ -9,6 +9,7 @@ import MainSignUp from "../../../../components/user/MainSignup/MainSignUp";
 import MainSignIn from "../../../../components/user/MainSignIn/MainSignIn";
 import OtpScreen from "../../../../components/user/OtpScreen/OtpScreen";
 import FeedBack from "../../../../components/common/Feedback/FeedBack";
+import Head from "next/head";
 
 export interface signupType {
   username: string | null;
@@ -24,6 +25,7 @@ export interface user1 {
 const Signup = ({ pageType = "signup" }: { pageType: string }) => {
   const [promise, setPromise] = useState<ConfirmationResult>();
   const [captcha, setCaptcha] = useState<RecaptchaVerifier>();
+
   const [page, setPage] = useState(1);
   const [signupState, setSignupState] = useState<signupType>({
     username: null,
@@ -52,13 +54,12 @@ const Signup = ({ pageType = "signup" }: { pageType: string }) => {
 
   const registerNewUser = async (user: user1) => {
     try {
-      const result = await fetch("/api/registerNewUser", {
+      const result = await fetch("/api/user/registerNewUser", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          loginMethod: "Email",
           username: user?.displayName,
           email: user?.email,
         }),
@@ -85,67 +86,93 @@ const Signup = ({ pageType = "signup" }: { pageType: string }) => {
   };
 
   return (
-    <Box sx={styles.containerWrapper}>
-      <Container maxWidth="xs" sx={styles.container}>
-        {page === 1 && (
-          <>
-            <Box sx={styles.textContainer}>
-              <Typography sx={styles.signupText}>
-                {pageType === "signin" ? "Sign in" : "Sign up"} to continue for
-                Booking
-              </Typography>
+    <>
+      <Head>
+        <title>user signup</title>
+      </Head>
 
-              <Typography onClick={handleGoogleSignin} sx={styles.googleText}>
-                Continue with Google
-              </Typography>
-            </Box>
+      <div id="sign-in-button"></div>
+      <Box sx={styles.containerWrapper}>
+        <Container
+          disableGutters
+          maxWidth="xs"
+          sx={{ minWidth: "350px", overflowX: "auto" }}
+        >
+          <Card sx={{ px: "2rem", py: "1rem" }}>
+            {page === 1 && (
+              <>
+                <Box sx={styles.textContainer}>
+                  <Typography variant="h5" sx={{ mb: "2rem" }}>
+                    {pageType === "signin" ? "Signin" : "Signup"}
+                    <Divider />
+                  </Typography>
 
-            <Divider sx={styles.divider}>or</Divider>
-          </>
-        )}
+                  <Card>
+                    <Typography
+                      onClick={handleGoogleSignin}
+                      //sx={styles.googleText}
+                      align="center"
+                      sx={{
+                        p: ".5rem 1rem",
+                        cursor: "pointer",
+                        border: "1px solid #aaa",
+                      }}
+                    >
+                      Continue with Google
+                    </Typography>
+                  </Card>
+                </Box>
 
-        {page === 1 && pageType === "signup" && (
-          <MainSignUp
-            page={page}
-            setPage={setPage}
-            signupState={signupState}
-            setSignupState={setSignupState}
-            setPromise={setPromise}
-            pageType={pageType}
-            setCaptcha={setCaptcha}
-          />
-        )}
+                <Divider sx={styles.divider}>or</Divider>
+              </>
+            )}
 
-        {page === 1 && pageType === "signin" && (
-          <MainSignIn
-            page={page}
-            setPage={setPage}
-            signupState={signupState}
-            setSignupState={setSignupState}
-            setPromise={setPromise}
-            pageType={pageType}
-            setCaptcha={setCaptcha}
-          />
-        )}
-        {page === 2 && (
-          <OtpScreen
-            signupState={signupState}
-            promise={promise}
-            setPage={setPage}
-            pageType={pageType}
-            setPromise={setPromise}
-            captcha={captcha}
-          />
-        )}
-      </Container>
+            {page === 1 && pageType === "signup" && (
+              <MainSignUp
+                page={page}
+                setPage={setPage}
+                signupState={signupState}
+                setSignupState={setSignupState}
+                setPromise={setPromise}
+                pageType={pageType}
+                setCaptcha={setCaptcha}
+                captcha={captcha}
+              />
+            )}
 
-      <FeedBack
-        severity={severity}
-        open={openFeedBack}
-        handleClose={handleClose}
-        message={message}
-      />
-    </Box>
+            {page === 1 && pageType === "signin" && (
+              <MainSignIn
+                setPage={setPage}
+                signupState={signupState}
+                setSignupState={setSignupState}
+                setPromise={setPromise}
+                pageType={pageType}
+                setCaptcha={setCaptcha}
+                captcha={captcha}
+              />
+            )}
+
+            {page === 2 && (
+              <OtpScreen
+                signupState={signupState}
+                promise={promise}
+                setPage={setPage}
+                pageType={pageType}
+                setPromise={setPromise}
+                captcha={captcha}
+              />
+            )}
+          </Card>
+        </Container>
+
+        <FeedBack
+          severity={severity}
+          open={openFeedBack}
+          handleClose={handleClose}
+          message={message}
+        />
+      </Box>
+    </>
   );
 };
 

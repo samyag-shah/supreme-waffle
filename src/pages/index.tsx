@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import Image from "next/image";
+import Head from "next/head";
+
+//@mui
 import {
   Card,
   CardContent,
-  Divider,
   Button,
   Typography,
   Box,
@@ -11,13 +15,13 @@ import {
   TextField,
   InputAdornment,
 } from "@mui/material";
-import PlaceIcon from "@mui/icons-material/Place";
-import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
-import { Carousel, Spin, message } from "antd";
-import { useRouter } from "next/router";
 import { styled } from "@mui/material/styles";
-import Image from "next/image";
 import SearchIcon from "@mui/icons-material/Search";
+// import PlaceIcon from "@mui/icons-material/Place";
+// import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
+
+import { Carousel, Spin, message } from "antd";
+
 import Header from "../../components/Header/header";
 
 const StyledBox1 = styled(Box)(({ theme }) => ({
@@ -36,26 +40,36 @@ const StyledBox2 = styled(Box)(({ theme }) => ({
   },
 }));
 
+//types
+interface box {
+  id: string;
+  boxCricketName: string;
+  boxCricketCity: string;
+  boxCricketArea: string;
+  boxCricketImages: any[];
+  minSlotPrice: number;
+  maxSlotPrice: number;
+}
+
 export default function Home() {
   const [boxCrickets, setBoxCrickets] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const router = useRouter();
 
+  //get all box crickets
   useEffect(() => {
     const fetchBoxCrickets = async () => {
       try {
-        setLoading(true);
-        const response = await fetch("/api/boxCricket/getAllBoxCrickets");
-        console.log({ response });
+        //setLoading(true);
+        const response = await fetch("/api/BoxCricket/getAllBoxCrickets");
         const result = await response.json();
-        setLoading(false);
-        console.log({ result });
         if (result.status === 200) {
           setBoxCrickets(result.boxCrickets);
         } else {
           message.info("Please try again");
         }
+        setLoading(false);
       } catch (err) {
         console.error(err);
         setLoading(false);
@@ -66,26 +80,38 @@ export default function Home() {
   }, []);
 
   if (loading) {
-    return <Spin tip="Loading" size="small" />;
+    return (
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Spin />
+      </Box>
+    );
   }
 
-  console.log({ boxCrickets });
   return (
     <>
+      <Head>
+        <title>All Box Crickets</title>
+      </Head>
+
       <Header />
 
       <Stack
         sx={{
-          //border: "1px solid",
           minHeight: `calc(100vh - 64px)`,
           marginTop: "64px",
           width: "100%",
           minWidth: "450px",
           overflowX: "auto",
-          padding: "2rem",
+          padding: { xs: ".5rem", md: "2rem" },
           backgroundColor: "rgb(249, 250, 251)",
         }}
-        divider={<Divider orientation="vertical" flexItem />}
       >
         <Grid
           container
@@ -95,10 +121,7 @@ export default function Home() {
             <Card>
               <Stack alignItems="end">
                 <TextField
-                  //variant="standard"
                   placeholder="search box cricket near you"
-                  // sx={{ width: "300px" }}
-                  //size="small"
                   fullWidth
                   InputProps={{
                     startAdornment: (
@@ -120,115 +143,114 @@ export default function Home() {
                 <Typography variant="h5">Box Crickets</Typography>
               </Grid>
 
-              {boxCrickets.map(
-                (box: {
-                  id: string;
-                  boxCricketName: string;
-                  boxCricketCity: string;
-                  boxCricketArea: string;
-                  boxCricketImages: any[];
-                  minSlotPrice: number;
-                  maxSlotPrice: number;
-                }) => (
-                  <Grid item xs={12} key={box.id}>
-                    <Card>
-                      <CardContent>
-                        <Grid
-                          container
-                          spacing={2}
-                          //sx={{ border: "1px solid" }}
-                        >
-                          <Grid item xs={12} sm={4}>
-                            <Box
-                              sx={{ border: "1px solid #bbb", height: "200px" }}
+              {boxCrickets.map((box: box) => (
+                <Grid item xs={12} key={box.id}>
+                  <Card>
+                    <CardContent>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={4}>
+                          <Box
+                            sx={{ border: "1px solid #bbb", height: "200px" }}
+                          >
+                            <Carousel autoplay style={{ position: "relative" }}>
+                              {box.boxCricketImages.map(
+                                (image: string, index) => (
+                                  <div
+                                    key={index}
+                                    style={{
+                                      position: "relative",
+                                      width: "100%",
+                                      height: "200px",
+                                    }}
+                                  >
+                                    <Image
+                                      src={image}
+                                      alt="boxCricket Image"
+                                      width={200}
+                                      height={200}
+                                      style={{
+                                        width: "100%",
+                                        height: "200px",
+                                      }}
+                                    />
+                                  </div>
+                                )
+                              )}
+                            </Carousel>
+                          </Box>
+                        </Grid>
+                        <Grid item xs={12} sm={8}>
+                          <Stack
+                            sx={{ border: "1px solid #bbb", height: "200px" }}
+                            gap={2}
+                          >
+                            <Typography
+                              sx={{
+                                borderBottom: "1px solid #bbb",
+                                paddingX: "1rem",
+                                paddingY: ".5rem",
+                              }}
+                              variant="h6"
                             >
-                              {/* <Carousel autoplay>
-                                {box.boxCricketImages.map(
-                                  (image: string, index) => (
-                                    <div
-                                      key={index}
-                                      style={{ width: "100%", height: "200px" }}
-                                    >
-                                      <img
-                                        width={"100%"}
-                                        height={"200px"}
-                                        //height={"225px"}
-                                        alt="image"
-                                        src={image}
-                                      />
-                                    </div>
-                                  )
-                                )}
-                              </Carousel> */}
-                            </Box>
-                          </Grid>
-                          <Grid item xs={12} sm={8}>
-                            <Stack
-                              sx={{ border: "1px solid #bbb", height: "200px" }}
-                              justifyContent="space-between"
-                              gap={2}
-                            >
-                              <Typography
-                                sx={{
-                                  borderBottom: "1px solid #bbb",
-                                  paddingX: "1rem",
-                                  paddingY: ".5rem",
-                                }}
-                                variant="h6"
-                              >
-                                {box.boxCricketName}
-                              </Typography>
+                              {box.boxCricketName}
+                            </Typography>
 
+                            <Box sx={{ flexGrow: 1 }}>
                               <Stack
                                 direction={{ xs: "row" }}
                                 sx={{
-                                  //borderBottom: "1px solid",
-                                  padding: "0 .5rem",
+                                  paddingX: "1rem",
+                                  paddingY: ".5rem",
+                                  flexGrow: 1,
                                 }}
                               >
-                                <PlaceIcon />
-                                <Typography
-                                // sx={{ textAlign: "right", border: "1px solid" }}
-                                >
-                                  {box.boxCricketCity}({box.boxCricketArea})
+                                <Typography>
+                                  <b>Address</b>
+                                </Typography>
+                                <Typography sx={{ ml: 1 }}>
+                                  {box.boxCricketArea}({box.boxCricketCity})
                                 </Typography>
                               </Stack>
 
                               <Stack
                                 direction="row"
-                                justifyContent="space-between"
                                 alignItems="center"
-                                sx={{ padding: ".5rem" }}
+                                sx={{ paddingX: "1rem" }}
                               >
-                                <Stack direction={{ xs: "row" }}>
-                                  <CurrencyRupeeIcon />{" "}
-                                  <Typography>
-                                    {box.minSlotPrice} - {box.maxSlotPrice}/hr
-                                  </Typography>
-                                </Stack>
+                                <Typography>
+                                  <b>Price range</b>
+                                </Typography>
 
-                                <Stack
-                                  direction={{ xs: "row" }}
-                                  justifyContent="flex-end"
-                                >
-                                  <Button
-                                    onClick={() =>
-                                      router.push(`/boxCricket/${box.id}`)
-                                    }
-                                    variant="outlined"
-                                  >
-                                    Book Now
-                                  </Button>
-                                </Stack>
+                                <Typography sx={{ ml: 1 }}>
+                                  {box.minSlotPrice} - {box.maxSlotPrice}/hr
+                                </Typography>
                               </Stack>
+                            </Box>
+
+                            <Stack
+                              direction={{ xs: "row" }}
+                              justifyContent="flex-end"
+                              sx={{
+                                //border: "1px solid",
+                                padding: ".5rem 1rem",
+                              }}
+                            >
+                              <Button
+                                onClick={() =>
+                                  router.push(`/boxCricket/${box.id}`)
+                                }
+                                variant="outlined"
+                              >
+                                Book Now
+                              </Button>
                             </Stack>
-                          </Grid>
+                          </Stack>
                         </Grid>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )
-              )}
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
             </Grid>
           </StyledBox1>
 

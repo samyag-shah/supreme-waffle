@@ -1,28 +1,22 @@
-import { Spin, message } from "antd";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import Header from "../../../components/Header/header";
-import {
-  Card,
-  CardContent,
-  Divider,
-  Button,
-  Typography,
-  Box,
-  Grid,
-  Stack,
-  useMediaQuery,
-  TextField,
-  InputAdornment,
-} from "@mui/material";
+import Image from "next/image";
+import Head from "next/head";
+
+//@mui
+import { Card, Typography, Box, Grid, Stack, Button } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import PlaceIcon from "@mui/icons-material/Place";
 import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
+
+import { Carousel, Spin, message } from "antd";
+
+import Header from "../../../components/Header/header";
 
 const dates = [0, 1, 2, 3, 4, 5, 6].map((day) =>
   new Date(new Date().setDate(new Date().getDate() + day)).getDate()
 );
 
+//types
 interface slot {
   id: number;
   period: string;
@@ -47,6 +41,7 @@ interface box {
   minSlotPrice: number;
   maxSlotPrice: number;
   boxCricketFacilities: string;
+  boxCricketImages: any[];
 }
 
 const BoxCricket = () => {
@@ -55,14 +50,16 @@ const BoxCricket = () => {
   const [availableSlots, setAvailableSlots] = useState<Array<slot>>([]);
   const [price, setPrice] = useState<price>();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [defaultDate, setDefaultDate] = useState(new Date().getDate());
 
+  //getting box cricket data
   useEffect(() => {
     const getBoxCricketInfo = async () => {
+      //setLoading(true);
       try {
         const response = await fetch(
-          `/api/boxCricket/getBoxCricket?boxCricketId=${router.query.boxCricketId}`
+          `/api/BoxCricket/getBoxCricket?boxCricketId=${router.query.boxCricketId}`
         );
         const result = await response.json();
         if (result.status === 200) {
@@ -100,8 +97,10 @@ const BoxCricket = () => {
         } else {
           message.info("Please try again");
         }
+        setLoading(false);
       } catch (err) {
         console.error(err);
+        setLoading(false);
         message.error("something went wrong");
       }
     };
@@ -112,7 +111,18 @@ const BoxCricket = () => {
   }, [router.query.boxCricketId]);
 
   if (loading) {
-    return <Spin tip="Loading" size="small" />;
+    return (
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Spin />
+      </Box>
+    );
   }
 
   const StyledBox1 = styled(Box)(({ theme }) => ({
@@ -137,7 +147,7 @@ const BoxCricket = () => {
     },
   }));
 
-  //console.log({ availableSlots });
+  //handle slots
   const handleSlots = (period: string) => {
     return (
       <Grid item sx={{ padding: "1rem 0rem", borderTop: "1px solid #ccc" }}>
@@ -154,22 +164,33 @@ const BoxCricket = () => {
                 <Card
                   key={index}
                   sx={{
-                    //border: "1px solid",
                     height: "90px",
                     width: "180px",
                     textAlign: "center",
                     padding: ".5rem",
                     cursor: "pointer",
                     border: slot.tempBooked ? "1px solid" : "0",
+                    backgroundColor: slot.tempBooked
+                      ? "rgb(249, 250, 251)"
+                      : "#fff",
                   }}
                   onClick={() => handlSlotClick(slot.id, slot.tempBooked)}
                 >
-                  <Typography>{slot.timing}</Typography>
-                  <Stack justifyContent="center" direction={{ xs: "row" }}>
-                    <CurrencyRupeeIcon />{" "}
-                    <Typography>{parseInt(slot.pricing) / 2}</Typography>
+                  <Typography sx={{ mt: ".5rem" }}>{slot.timing}</Typography>
+                  <Stack
+                    justifyContent="space-between"
+                    alignItems="center"
+                    direction="row"
+                    sx={{ mt: ".5rem", px: ".5rem" }}
+                  >
+                    <Stack alignItems="center" direction="row">
+                      <CurrencyRupeeIcon
+                        sx={{ width: "20px", height: "18px" }}
+                      />{" "}
+                      <Typography>{parseInt(slot.pricing) / 2}</Typography>
+                    </Stack>
+                    <Typography>Available</Typography>
                   </Stack>
-                  <Typography>Available</Typography>
                 </Card>
               );
             }
@@ -194,6 +215,59 @@ const BoxCricket = () => {
     setAvailableSlots(newBookedSlots);
   };
 
+  const handleSelectedSlots = () => {
+    return (
+      <Grid item sx={{ padding: "1rem 0rem", borderTop: "1px solid #ccc" }}>
+        <Stack
+          rowGap={2}
+          columnGap={1}
+          direction="row"
+          justifyContent="center"
+          flexWrap="wrap"
+        >
+          {availableSlots?.map((slot: slot, index) => {
+            if (slot.tempBooked) {
+              return (
+                <Card
+                  key={index}
+                  sx={{
+                    height: "90px",
+                    width: "180px",
+                    textAlign: "center",
+                    padding: ".5rem",
+                    cursor: "pointer",
+                    // border: slot.tempBooked ? "1px solid" : "0",
+                    // backgroundColor: slot.tempBooked
+                    //   ? "rgb(249, 250, 251)"
+                    //   : "#fff",
+                  }}
+                  //onClick={() => handlSlotClick(slot.id, slot.tempBooked)}
+                >
+                  <Typography sx={{ mt: ".5rem" }}>{slot.timing}</Typography>
+                  <Stack
+                    justifyContent="space-between"
+                    alignItems="center"
+                    direction="row"
+                    sx={{ mt: ".5rem", px: ".5rem" }}
+                  >
+                    <Stack alignItems="center" direction="row">
+                      <CurrencyRupeeIcon
+                        sx={{ width: "20px", height: "18px" }}
+                      />{" "}
+                      <Typography>{parseInt(slot.pricing) / 2}</Typography>
+                    </Stack>
+                    <Typography>Available</Typography>
+                  </Stack>
+                </Card>
+              );
+            }
+          })}
+        </Stack>
+      </Grid>
+    );
+  };
+
+  //handle dates
   const handleDateClick = (date: number) => {
     console.log({ date });
     setDefaultDate(date);
@@ -201,6 +275,10 @@ const BoxCricket = () => {
 
   return (
     <>
+      <Head>
+        <title>Box Cricket</title>
+      </Head>
+
       <Header />
 
       <Stack
@@ -220,28 +298,49 @@ const BoxCricket = () => {
               sm={4}
               sx={{ backgroundColor: "#fff", border: "1px solid" }}
             >
-              <Box sx={{ height: "150px" }}> </Box>
+              <Box sx={{ height: "150px" }}>
+                <Carousel autoplay>
+                  {boxCricket?.boxCricketImages.map((image: string, index) => (
+                    <div key={index}>
+                      <Image
+                        src={image}
+                        alt="boxCricket Image"
+                        width={200}
+                        height={200}
+                        style={{
+                          width: "100%",
+                          height: "150px",
+                        }}
+                      />
+                    </div>
+                  ))}
+                </Carousel>{" "}
+              </Box>
             </Grid>
             <Grid item xs={12} sm={8} sx={{ backgroundColor: "#fff" }}>
               <Stack
                 gap={1}
                 sx={{ ml: "0.5rem", height: "150px", padding: ".5rem" }}
               >
-                <Typography variant="h6">
+                <Typography
+                  variant="h6"
+                  sx={{ borderBottom: "1px solid #ccc" }}
+                >
                   {boxCricket?.boxCricketName}
                 </Typography>
                 <Stack direction="row">
-                  <PlaceIcon />
-                  <Typography>{boxCricket?.boxCricketAddress}</Typography>
+                  {/* <PlaceIcon /> */}
+                  <Typography>Address:</Typography>
+                  <Typography sx={{ ml: ".5rem" }}>
+                    {boxCricket?.boxCricketAddress}
+                  </Typography>
                 </Stack>
-                {/* <Stack direction={{ xs: "row" }}>
-                    <CurrencyRupeeIcon />{" "}
-                    <Typography>
-                      {boxCricket?.minSlotPrice} - {boxCricket?.maxSlotPrice}/hr
-                    </Typography>
-                  </Stack> */}
-
-                <Typography>{boxCricket?.boxCricketFacilities}</Typography>
+                <Stack direction={{ xs: "row" }}>
+                  <Typography>Facilities Provided:</Typography>
+                  <Typography sx={{ ml: ".5rem" }}>
+                    {boxCricket?.boxCricketFacilities}
+                  </Typography>
+                </Stack>
               </Stack>
             </Grid>
 
@@ -325,10 +424,63 @@ const BoxCricket = () => {
               </Grid>
               {handleSlots("afternoon")}
             </Card>
+
+            <Grid item xs={12}>
+              <Card
+                sx={{
+                  padding: "1rem",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <Button variant="outlined">Book and Pay</Button>
+              </Card>
+            </Grid>
           </Grid>
         </StyledBox1>
+
         <StyledBox2>
-          <Grid></Grid>
+          <Grid container>
+            <Grid item xs={12}>
+              <Card
+                sx={{
+                  padding: "1rem",
+                  marginTop: "1rem",
+                }}
+              >
+                <Typography
+                  sx={{ borderBottom: "1px solid #ccc" }}
+                  //variant="h6"
+                >
+                  Terms For Booking
+                </Typography>
+                <Typography
+                  sx={{ mt: "1rem" }}
+                  //variant="h6"
+                >
+                  You have to book for atleast one hour
+                </Typography>
+              </Card>
+              <Card
+                sx={{
+                  mt: "2rem",
+                  p: "1rem",
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                }}
+              >
+                <Typography sx={{ borderBottom: "1px solid #ccc" }}>
+                  Selected Slots
+                </Typography>
+                {handleSelectedSlots()}
+              </Card>
+              <Card sx={{ p: 1, mt: 2 }}>
+                <Button variant="outlined" fullWidth>
+                  Book
+                </Button>
+              </Card>
+            </Grid>
+          </Grid>
         </StyledBox2>
       </Stack>
     </>

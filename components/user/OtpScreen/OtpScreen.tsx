@@ -1,4 +1,5 @@
 import React, { Dispatch, useEffect, SetStateAction } from "react";
+import { useRouter } from "next/router";
 
 import { Grid, Typography } from "@mui/material";
 import { useForm } from "react-hook-form";
@@ -8,7 +9,6 @@ import * as yup from "yup";
 import Input from "../../common/Input/Input";
 import CommonButton from "../../common/Button/CommonButton";
 
-import { useRouter } from "next/router";
 import { ConfirmationResult, RecaptchaVerifier } from "firebase/auth";
 import FeedBack from "../../common/Feedback/FeedBack";
 
@@ -16,6 +16,7 @@ import Timer from "./timer";
 import { signInWithPhone } from "../../../config/firebase/firebase";
 import { signupType } from "@/pages/user/signup";
 import { styles } from "../../styles/userSingupStyles";
+import { Spin } from "antd";
 
 const schema = yup
   .object({
@@ -82,7 +83,7 @@ const OtpScreen = ({
   }, []);
 
   const registerNewUser = async () => {
-    const result = await fetch("/api/registerNewUser", {
+    const result = await fetch("/api/user/registerNewUser", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -94,7 +95,7 @@ const OtpScreen = ({
       }),
     });
     const response = await result.json();
-    if (response?.body?.id) {
+    if (response?.newUser?.id) {
       router.push("/");
     }
   };
@@ -107,12 +108,12 @@ const OtpScreen = ({
         .confirm(data.otp)
         .then((res) => {
           //console.log(res);
-          setLoading(false);
           if (pageType === "signup") {
             registerNewUser();
           } else {
             router.push("/");
           }
+          setLoading(false);
         })
         .catch((error) => {
           console.error({ error });
@@ -152,7 +153,7 @@ const OtpScreen = ({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Typography sx={styles.otpText}>
+      <Typography sx={{ m: "1rem 0" }}>
         We have sent an SMS to <b>{signupState.phone}</b>
       </Typography>
 
@@ -170,34 +171,38 @@ const OtpScreen = ({
         </Grid>
       </Grid>
 
-      <Typography align={"right"} sx={styles.resendText}>
+      {/* <Typography align={"right"} sx={{ mt: "1rem" }}>
         <Timer t1={t1} setT1={setT1} />
         {handleTimer()}
-      </Typography>
+      </Typography> */}
 
-      <Grid container spacing={2}>
-        <Grid item xs={6}>
-          <CommonButton
-            sx={styles.nextbtn}
-            onClick={() => setPage(1)}
-            variant="contained"
-            fullWidth
-            disabled={loading}
-          >
-            prev
-          </CommonButton>
-        </Grid>
-        <Grid item xs={6}>
-          <CommonButton
-            type="submit"
-            sx={styles.nextbtn}
-            variant="contained"
-            fullWidth
-            disabled={loading}
-          >
-            Verify
-          </CommonButton>
-        </Grid>
+      <Grid item xs={12}>
+        <Typography
+          sx={{
+            mt: "1rem",
+            mb: ".5rem",
+            textDecoration: "underline",
+            cursor: "pointer",
+          }}
+          align="right"
+          onClick={() => setPage(1)}
+        >
+          {pageType === "signup" ? "Signup" : "Signin"} with different number
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12}>
+        <CommonButton
+          type="submit"
+          sx={{ mb: "1rem" }}
+          //sx={styles.nextbtn}
+          variant="outlined"
+          fullWidth
+          disabled={loading}
+          size="large"
+        >
+          {loading ? <Spin /> : <b>Verify</b>}
+        </CommonButton>
       </Grid>
 
       <FeedBack

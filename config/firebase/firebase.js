@@ -15,13 +15,13 @@ import {
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyBGUvN-gBsvd1f3ahFqd-eRNDE8Ypp4mXE",
-  authDomain: "react-my-burger-baf73.firebaseapp.com",
-  databaseURL: "https://react-my-burger-baf73.firebaseio.com",
-  projectId: "react-my-burger-baf73",
-  storageBucket: "react-my-burger-baf73.appspot.com",
-  messagingSenderId: "521051837726",
-  appId: "1:521051837726:web:80bf5c2a1c75c78928250f",
+  apiKey: process.env.NEXT_PUBLIC_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_AUTH_DOMAIN,
+  databaseURL: process.env.NEXT_PUBLIC_DatabaseURL,
+  projectId: process.env.NEXT_PUBLIC_ProjectId,
+  storageBucket: process.env.NEXT_PUBLIC_StorageBucket,
+  messagingSenderId: process.env.NEXT_PUBLIC_MessagingSenderId,
+  appId: process.env.NEXT_PUBLIC_AppId,
   //measurementId: "G-VNHHHX7E76"
 };
 
@@ -39,6 +39,7 @@ export const captchaVerifier = () => {
     {
       size: "invisible",
       callback: () => {
+        //console.log("hello1");
         // reCAPTCHA solved, allow signInWithPhoneNumber.
         //console.log({ response });
         //onSignInSubmit();
@@ -46,6 +47,7 @@ export const captchaVerifier = () => {
     },
     auth
   );
+
   return recaptchaVerifier;
 };
 

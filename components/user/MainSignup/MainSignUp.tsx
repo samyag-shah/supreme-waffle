@@ -1,4 +1,4 @@
-import React, { useEffect, Dispatch, SetStateAction } from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import Link from "next/link";
 
 import { Grid, Typography } from "@mui/material";
@@ -16,7 +16,9 @@ import CommonButton from "../../common/Button/CommonButton";
 import FeedBack from "../../common/Feedback/FeedBack";
 import { styles } from "../../styles/userSingupStyles";
 import { signupType } from "@/pages/user/signup";
+import { Spin } from "antd";
 
+//schema
 const schema = yup
   .object({
     username: yup
@@ -33,9 +35,11 @@ const schema = yup
   .required();
 type FormData = yup.InferType<typeof schema>;
 
+//types
 interface props {
   page: number;
   pageType: string;
+  captcha: RecaptchaVerifier | undefined;
   setPage: Dispatch<SetStateAction<number>>;
   signupState: signupType;
   setSignupState: Dispatch<SetStateAction<signupType>>;
@@ -45,17 +49,16 @@ interface props {
 
 const MainSignUp = ({
   setPromise,
-  page,
   setPage,
   signupState,
   setSignupState,
   pageType,
   setCaptcha,
+  captcha,
 }: props) => {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
@@ -78,67 +81,64 @@ const MainSignUp = ({
     setOpenFeedBack(false);
   };
 
-  useEffect(() => {
-    if (signupState.username && signupState.phone) {
-      setValue("username", signupState.username);
-      setValue("phone", signupState.phone);
-    }
-  }, [page]);
-
   const onSubmit = async (data: FormData) => {
     //"+16505551234"
-    let phone = "+1" + data.phone;
+    //let phone = "+1" + data.phone;
+    let phone = "+91" + data.phone;
 
     //check if user is already registered or not
-    setLoading(true);
-    const result = await fetch("/api/isUserRegisterd", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        loginMethod: "Phone",
-        username: data.username,
-        phone: data.phone,
-      }),
-    });
-    const response = await result.json();
-    setLoading(false);
+    try {
+      setLoading(true);
+      const result = await fetch("/api/user/isUserRegistered", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: data.username,
+          phone: data.phone,
+        }),
+      });
+      const response = await result.json();
 
-    if (response.isRegistered) {
-      //user is already registered
-      setSeverity("warning");
-      setMessage("This number is already registered");
-      setOpenFeedBack(true);
-    } else {
-      try {
+      if (response.isRegistered) {
+        //user is already registered
+        setSeverity("warning");
+        setMessage("This number is already registered");
+        setOpenFeedBack(true);
+      } else {
         setLoading(true);
-        const captcha = captchaVerifier();
-        const confirmationResult = await signInWithPhone(phone, captcha);
-        setLoading(false);
+        let captcha1;
+        if (!captcha) {
+          captcha1 = captchaVerifier();
+        } else {
+          captcha1 = captcha;
+        }
+        const confirmationResult = await signInWithPhone(phone, captcha1);
         setPromise(confirmationResult);
-        setCaptcha(captcha);
+        setCaptcha(captcha1);
         setSignupState({ ...signupState, ...data });
         setPage(2);
-      } catch (err) {
-        setLoading(false);
-        setSeverity("error");
-        setMessage("Something Went Wrong, Please try again");
-        setOpenFeedBack(true);
       }
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      console.error({ err });
+      setSeverity("error");
+      setMessage("Something Went Wrong, Please try again");
+      setOpenFeedBack(true);
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Grid container spacing={2} sx={styles.formContainer}>
+      <Grid container spacing={2}>
         {pageType === "signup" && (
           <Grid item xs={12}>
             <Input
               label="What should we call you?"
               fullWidth
               type="text"
-              //required={true}
               {...register("username")}
               helperText={errors?.username?.message}
               error={errors?.username?.message ? true : false}
@@ -151,34 +151,36 @@ const MainSignUp = ({
             label="Phone Number"
             fullWidth
             type="number"
-            //required={true}
             {...register("phone")}
             helperText={errors?.phone?.message}
             error={errors?.phone?.message ? true : false}
           />
         </Grid>
       </Grid>
+
       <CommonButton
         sx={styles.nextbtn}
-        variant="contained"
+        variant="outlined"
         fullWidth
         type="submit"
-        id="sign-in-button"
         disabled={loading}
+        size="large"
       >
-        Next
+        {loading ? <Spin tip="loading" /> : <b>Next</b>}
       </CommonButton>
+
       <FeedBack
         severity={severity}
         open={openFeedBack}
         handleClose={handleClose}
         message={message}
       />
+
       <Typography align={"right"} sx={styles.link}>
         <Link href={pageType === "signin" ? "/user/signup" : "/user/signin"}>
           {pageType === "signin"
             ? "Don't have an Account? Signup"
-            : "Already have an account? Sign in"}
+            : "Already have an account? Signin"}
         </Link>
       </Typography>
     </form>
