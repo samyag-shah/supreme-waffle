@@ -12,8 +12,3 @@ ALTER TABLE "Boxcricket" DROP COLUMN "boxCricketFacilities",
 ADD COLUMN     "boxCricketFreeFacilities" TEXT NOT NULL,
 ADD COLUMN     "boxCricketPaidFacilities" TEXT NOT NULL;
 
--- AlterTable
-ALTER TABLE "User" DROP COLUMN "loginMethod";
-
--- DropEnum
-DROP TYPE "Method";
