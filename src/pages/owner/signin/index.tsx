@@ -1,14 +1,8 @@
-import React, {
-  useEffect,
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useState,
-} from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { Grid, Container, Typography, Box } from "@mui/material";
+import { Grid, Card, Container, Typography, Box } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -22,7 +16,8 @@ import Input from "../../../../components/common/Input/Input";
 import CommonButton from "../../../../components/common/Button/CommonButton";
 import FeedBack from "../../../../components/common/Feedback/FeedBack";
 import { styles } from "../../../../components/styles/OwnerSigninStyles";
-import { UserContext } from "@/pages/_app";
+import { Spin } from "antd";
+import Cookies from "js-cookie";
 
 const schema = yup
   .object({
@@ -57,6 +52,7 @@ const OwnerSignIn = () => {
     register,
     handleSubmit,
     getValues,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
@@ -71,10 +67,7 @@ const OwnerSignIn = () => {
     resolver: yupResolver(schema1),
   });
 
-  const [loading1, setLoading1] = useState(true);
   const router = useRouter();
-
-  const value = useContext(UserContext);
 
   //Feedback
   const [loading, setLoading] = React.useState(false);
@@ -96,193 +89,229 @@ const OwnerSignIn = () => {
 
   const onSubmit = async (data: FormData) => {
     //"+16505551234"
-    console.log({ data });
     setValue1("otp", "");
 
     //check if owner is already registered or not
-    setLoading(true);
-    const result = await fetch("/api/owner/isOwnerRegistered", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        phone: data.phone,
-      }),
-    });
-    const response = await result.json();
-    setLoading(false);
+    try {
+      setLoading(true);
+      const result = await fetch("/api/owner/isOwnerRegistered", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone: data.phone,
+        }),
+      });
+      const response = await result.json();
 
-    if (!response.isRegistered) {
-      //owner is not registered
-      setSeverity("warning");
-      setMessage("This number is not registered");
+      if (!response.isRegistered) {
+        //owner is not registered
+        setSeverity("warning");
+        setMessage("This number is not registered");
+        setOpenFeedBack(true);
+      } else {
+        //owner is registered
+        // let captcha1;
+        // if (captcha) {
+        //   captcha1 = captcha;
+        // } else {
+        //   captcha1 = captchaVerifier();
+        // }
+        // const confirmationResult = await signInWithPhone(
+        //   "+91" + data.phone,
+        //   captcha1
+        // );
+        // setPromise(confirmationResult);
+        // setCaptcha(captcha1);
+        setPage1(2);
+      }
+      setLoading(false);
+    } catch (err) {
+      console.log({ err });
+      setLoading(false);
+      setSeverity("error");
+      setMessage("Something Went Wrong, Please try again");
       setOpenFeedBack(true);
-    } else {
-      //owner is registered
-      setPage1(2);
-      //   setLoading(true);
-      //   try {
-      //     setLoading(true);
-      //     const captcha = captchaVerifier();
-      //     const confirmationResult = await signInWithPhone(
-      //       "+1" + data.phone,
-      //       captcha
-      //     );
-      //     setLoading(false);
-      //     setPromise(confirmationResult);
-      //     setCaptcha(captcha);
-      //     setPage1(2);
-      //   } catch (err) {
-      //     setLoading(false);
-      //     setSeverity("error");
-      //     setMessage("Something Went Wrong, Please try again");
-      //     setOpenFeedBack(true);
-      //   }
     }
   };
 
-  const onSubmit1 = async (data: FormData1) => {
-    console.log({ data });
-
-    setLoading(true);
-    const phone = getValues("phone");
-    const response = await fetch("/api/owner/ownerSignin", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ phone }),
-    });
-    const result = await response.json();
-    console.log({ result });
-    setLoading(false);
-    localStorage.setItem("access_token", result.access_token);
-    localStorage.setItem("user", JSON.stringify(result.user));
-    if (value) {
-      value?.setSession({ user: result.user, token: result.access_token });
+  useEffect(() => {
+    if (page1 === 1) {
+      setValue("phone", "");
     }
-    router.push("/owner");
-    // if (promise) {
-    //   promise
-    //     .confirm(data.otp)
-    //     .then((res) => {
-    //       console.log(res);
-    //       setLoading(false);
-    //       router.push("/");
-    //     })
-    //     .catch((error) => {
-    //       console.error({ error });
-    //       setLoading(false);
-    //       setSeverity("error");
-    //       setMessage("Incorrect Code Please try again");
-    //       setOpenFeedBack(true);
-    //     });
-    // }
+  }, [page1]);
+
+  const onSubmit1 = async (data: FormData1) => {
+    //console.log({ data });
+    const phone = getValues("phone");
+
+    const handlSignin = async () => {
+      const response = await fetch("/api/owner/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phone }),
+      });
+      const result = await response.json();
+      if (result.status === 200) {
+        return { token: result.token, ...result.owner };
+      }
+    };
+
+    try {
+      setLoading(true);
+      //await promise?.confirm(data.otp);
+      const result = await handlSignin();
+      const currentUser = {
+        userType: "owner",
+        name: result.ownerName,
+        phone: result.ownerPhone,
+        id: result.id,
+      };
+      Cookies.set("currentUser", JSON.stringify(currentUser), { expires: 1 });
+      Cookies.set("token", result.token);
+      setLoading(false);
+      router.push("/owner");
+    } catch (err) {
+      console.error({ err });
+      setLoading(false);
+      setSeverity("error");
+      setMessage("Incorrect Code Please try again");
+      setOpenFeedBack(true);
+    }
   };
 
   return (
     <Box sx={styles.containerWrapper}>
-      <Container maxWidth={"xs"} sx={styles.container}>
-        {page1 === 1 && (
-          <Grid item xs={12}>
-            <Typography variant="h5" sx={styles.header}>
-              Signin
-            </Typography>
-          </Grid>
-        )}
-
-        {page1 === 1 && (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Grid container spacing={2} sx={styles.formContainer}>
-              <Grid item xs={12}>
-                <Input
-                  label="Phone Number"
-                  fullWidth
-                  type="number"
-                  {...register("phone")}
-                  helperText={"phone" in errors && errors?.phone?.message}
-                  error={
-                    "phone" in errors && errors?.phone?.message ? true : false
-                  }
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <CommonButton
-                  variant="contained"
-                  fullWidth
-                  type="submit"
-                  id="sign-in-button"
-                  disabled={loading}
-                >
-                  Next
-                </CommonButton>
-              </Grid>
+      <div id="sign-in-button"></div>
+      <Container maxWidth={"xs"} disableGutters>
+        <Card sx={{ padding: "1rem" }}>
+          {page1 === 1 && (
+            <Grid item xs={12}>
+              <Typography
+                sx={{ mb: 2, ml: 2, borderBottom: "1px solid #ccc" }}
+                variant="h5"
+                //sx={styles.header}
+              >
+                Owner signin
+              </Typography>
             </Grid>
-          </form>
-        )}
+          )}
 
-        {page1 === 2 && (
-          <form onSubmit={handleSubmit1(onSubmit1)}>
-            <Grid container spacing={2} sx={styles.formContainer1}>
-              <Grid item xs={12}>
-                <Typography variant="body1" sx={styles.mobile}>
-                  We have sent you an SMS on <b>{getValues("phone")}</b>
-                </Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Input
-                  label="Otp"
-                  fullWidth
-                  type="number"
-                  {...register1("otp")}
-                  helperText={"otp" in errors1 && errors1?.otp?.message}
-                  error={
-                    "otp" in errors1 && errors1?.otp?.message ? true : false
-                  }
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <CommonButton
-                  variant="contained"
-                  fullWidth
-                  onClick={() => setPage1(1)}
-                  id="sign-in-button"
-                  disabled={loading}
+          {page1 === 1 && (
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Grid container spacing={2} sx={styles.formContainer}>
+                <Grid item xs={12}>
+                  <Input
+                    label="Phone Number"
+                    fullWidth
+                    //type="number"
+                    type="tel"
+                    {...register("phone")}
+                    helperText={"phone" in errors && errors?.phone?.message}
+                    error={
+                      "phone" in errors && errors?.phone?.message ? true : false
+                    }
+                  />
+                </Grid>
+                <Grid
+                  item
+                  xs={12}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
                 >
-                  Prev
-                </CommonButton>
+                  <Typography sx={{ p: 0 }} variant="body2">
+                    No Account?
+                    <Link
+                      href={"/owner/signup"}
+                      style={{ marginLeft: ".2rem", textDecoration: "none" }}
+                    >
+                      {`Create one!`}
+                    </Link>
+                  </Typography>
+                  <CommonButton
+                    variant="outlined"
+                    sx={{ px: 5 }}
+                    type="submit"
+                    disabled={loading}
+                  >
+                    {loading ? <Spin /> : "Next"}
+                  </CommonButton>
+                </Grid>
               </Grid>
-              <Grid item xs={6}>
-                <CommonButton
-                  variant="contained"
-                  fullWidth
-                  type="submit"
-                  id="sign-in-button"
-                  disabled={loading}
+            </form>
+          )}
+
+          {page1 === 2 && (
+            <form onSubmit={handleSubmit1(onSubmit1)}>
+              <Grid container spacing={2} sx={styles.formContainer1}>
+                <Grid item xs={12}>
+                  <Typography variant="body1" sx={styles.mobile}>
+                    We have sent you an SMS on <b>{getValues("phone")}</b>
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Input
+                    label="Otp"
+                    fullWidth
+                    type="tel"
+                    {...register1("otp")}
+                    helperText={"otp" in errors1 && errors1?.otp?.message}
+                    error={
+                      "otp" in errors1 && errors1?.otp?.message ? true : false
+                    }
+                  />
+                </Grid>
+
+                <Grid
+                  item
+                  xs={12}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
                 >
-                  Next
-                </CommonButton>
+                  <Typography
+                    //align="right"
+                    sx={{
+                      //textDecoration: "underline",
+                      color: "blue",
+                      cursor: "pointer",
+                    }}
+                    variant="body2"
+                    onClick={() => setPage1(1)}
+                  >
+                    Use different number
+                  </Typography>
+
+                  <CommonButton
+                    //fullWidth
+                    variant="outlined"
+                    type="submit"
+                    sx={{ px: 5 }}
+                    id="sign-in-button"
+                    disabled={loading}
+                  >
+                    {loading ? <Spin /> : "Signin"}
+                  </CommonButton>
+                </Grid>
               </Grid>
-            </Grid>
-          </form>
-        )}
-
-        <FeedBack
-          severity={severity}
-          open={openFeedBack}
-          handleClose={handleClose}
-          message={message}
-        />
-
-        {page1 === 1 && (
-          <Typography align={"right"} sx={styles.link}>
-            <Link href={"/owner/signup"} style={{ textDecoration: "none" }}>
-              {`Don't have an Account? Signup`}
-            </Link>
-          </Typography>
-        )}
+            </form>
+          )}
+        </Card>
       </Container>
+      <FeedBack
+        severity={severity}
+        open={openFeedBack}
+        handleClose={handleClose}
+        message={message}
+      />
     </Box>
   );
 };

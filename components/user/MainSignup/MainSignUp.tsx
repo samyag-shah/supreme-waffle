@@ -83,8 +83,8 @@ const MainSignUp = ({
 
   const onSubmit = async (data: FormData) => {
     //"+16505551234"
-    //let phone = "+1" + data.phone;
-    let phone = "+91" + data.phone;
+    let phone = "+1" + data.phone;
+    //let phone = "+91" + data.phone;
 
     //check if user is already registered or not
     try {

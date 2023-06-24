@@ -17,6 +17,7 @@ import { signInWithPhone } from "../../../config/firebase/firebase";
 import { signupType } from "@/pages/user/signup";
 import { styles } from "../../styles/userSingupStyles";
 import { Spin } from "antd";
+import Cookies from "js-cookie";
 
 const schema = yup
   .object({
@@ -89,13 +90,49 @@ const OtpScreen = ({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        loginMethod: "Phone",
         username: signupState.username,
         phone: signupState.phone,
+        userType: "user",
       }),
     });
     const response = await result.json();
     if (response?.newUser?.id) {
+      let currentUser = {
+        username: response?.newUser?.username,
+        phone: response?.newUser.phone,
+        userType: "user",
+      };
+      Cookies.set("currentUser", JSON.stringify(currentUser), {
+        expires: 7,
+      });
+      Cookies.set("token", response?.token, { expires: 1 });
+      router.push("/");
+    }
+  };
+
+  const signinUser = async () => {
+    const result = await fetch("/api/user/signin", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: signupState.username,
+        phone: signupState.phone,
+        userType: "user",
+      }),
+    });
+    const response = await result.json();
+    if (response?.user?.id) {
+      let currentUser = {
+        username: response?.user?.username,
+        phone: response?.user.phone,
+        userType: "user",
+      };
+      Cookies.set("currentUser", JSON.stringify(currentUser), {
+        expires: 7,
+      });
+      Cookies.set("token", response?.token, { expires: 1 });
       router.push("/");
     }
   };
@@ -107,11 +144,12 @@ const OtpScreen = ({
       promise
         .confirm(data.otp)
         .then((res) => {
-          //console.log(res);
+          console.log({ pageType });
           if (pageType === "signup") {
             registerNewUser();
-          } else {
-            router.push("/");
+          } else if (pageType === "signin") {
+            signinUser();
+            //router.push("/");
           }
           setLoading(false);
         })

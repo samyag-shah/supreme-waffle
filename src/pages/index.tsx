@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import Head from "next/head";
@@ -14,6 +14,7 @@ import {
   Stack,
   TextField,
   InputAdornment,
+  Container,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
@@ -106,41 +107,42 @@ export default function Home() {
         sx={{
           minHeight: `calc(100vh - 64px)`,
           marginTop: "64px",
-          width: "100%",
-          minWidth: "450px",
+          minWidth: "350px",
           overflowX: "auto",
-          padding: { xs: ".5rem", md: "2rem" },
+          // border: "1px solid",
+          padding: { xs: "0rem", sm: "1.5rem" },
           backgroundColor: "rgb(249, 250, 251)",
+          //backgroundImage: "url(`${/public/header_image.jpeg}`)",
         }}
       >
-        <Grid
-          container
-          sx={{ padding: "1rem", mb: "1rem", borderBottom: "1px solid #bbb" }}
+        <Box
+          sx={{
+            //border: "1px solid",
+            padding: "1rem",
+            mb: "1rem",
+            borderBottom: "1px solid #bbb",
+          }}
         >
-          <Grid item xs={12}>
-            <Card>
-              <Stack alignItems="end">
-                <TextField
-                  placeholder="search box cricket near you"
-                  fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Stack>
-            </Card>
-          </Grid>
-        </Grid>
+          <Card>
+            <TextField
+              placeholder="search box cricket near you"
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Card>
+        </Box>
 
-        <Stack direction="row" gap={2}>
+        <Stack direction="row" gap={2} sx={{ border: "1px solid" }}>
           <StyledBox1>
             <Grid container spacing={2} sx={{ padding: "1rem" }}>
               <Grid item xs={12}>
-                <Typography variant="h5">Box Crickets</Typography>
+                <Typography variant="h5">All Box Crickets</Typography>
               </Grid>
 
               {boxCrickets.map((box: box) => (
@@ -148,41 +150,41 @@ export default function Home() {
                   <Card>
                     <CardContent>
                       <Grid container spacing={2}>
-                        <Grid item xs={12} sm={4}>
+                        <Grid item xs={12} sm={5} md={4}>
                           <Box
-                            sx={{ border: "1px solid #bbb", height: "200px" }}
+                            sx={{
+                              border: "1px solid #bbb",
+                              height: { md: "220px", xs: "250px" },
+                            }}
                           >
                             <Carousel autoplay style={{ position: "relative" }}>
                               {box.boxCricketImages.map(
                                 (image: string, index) => (
-                                  <div
-                                    key={index}
-                                    style={{
-                                      position: "relative",
-                                      width: "100%",
-                                      height: "200px",
-                                    }}
-                                  >
-                                    <Image
+                                  <React.Fragment key={index}>
+                                    {/* <Image
                                       src={image}
                                       alt="boxCricket Image"
                                       width={200}
                                       height={200}
                                       style={{
                                         width: "100%",
-                                        height: "200px",
+                                        height: "220px",
                                       }}
-                                    />
-                                  </div>
+                                    /> */}
+                                  </React.Fragment>
                                 )
                               )}
                             </Carousel>
                           </Box>
                         </Grid>
-                        <Grid item xs={12} sm={8}>
+
+                        <Grid item xs={12} sm={7} md={8}>
                           <Stack
-                            sx={{ border: "1px solid #bbb", height: "200px" }}
-                            gap={2}
+                            sx={{
+                              border: "1px solid #bbb",
+                              height: { md: "220px", xs: "250px" },
+                            }}
+                            //gap={1}
                           >
                             <Typography
                               sx={{
@@ -197,18 +199,20 @@ export default function Home() {
 
                             <Box sx={{ flexGrow: 1 }}>
                               <Stack
-                                direction={{ xs: "row" }}
+                                //direction={{ xs: "row" }}
                                 sx={{
                                   paddingX: "1rem",
                                   paddingY: ".5rem",
                                   flexGrow: 1,
                                 }}
                               >
-                                <Typography>
-                                  <b>Address</b>
+                                <Typography fontWeight={600}>
+                                  Address
                                 </Typography>
-                                <Typography sx={{ ml: 1 }}>
+                                <Typography>
                                   {box.boxCricketArea}({box.boxCricketCity})
+                                  {/* 64 kamal duplex opp. neel sagar tenaments
+                                  kathawada road naroda ahemdabad */}
                                 </Typography>
                               </Stack>
 
@@ -218,11 +222,11 @@ export default function Home() {
                                 sx={{ paddingX: "1rem" }}
                               >
                                 <Typography>
-                                  <b>Price range</b>
+                                  <b>Price range:</b>
                                 </Typography>
 
                                 <Typography sx={{ ml: 1 }}>
-                                  {box.minSlotPrice} - {box.maxSlotPrice}/hr
+                                  {box.minSlotPrice}-{box.maxSlotPrice}/hr
                                 </Typography>
                               </Stack>
                             </Box>
@@ -240,6 +244,9 @@ export default function Home() {
                                   router.push(`/boxCricket/${box.id}`)
                                 }
                                 variant="outlined"
+                                sx={{
+                                  width: { xs: "100%", sm: "50%", md: "25%" },
+                                }}
                               >
                                 Book Now
                               </Button>

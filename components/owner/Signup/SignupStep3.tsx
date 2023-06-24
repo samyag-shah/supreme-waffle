@@ -1,5 +1,5 @@
 //react-nextjs
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 
 //mui
@@ -22,306 +22,361 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
 import { styles } from "./styles";
-import { message } from "antd";
+import { Spin, message } from "antd";
 
-//google auth
 import SendIcon from "@mui/icons-material/Send";
 import { SignupState } from "@/pages/owner/signup";
+import Cookies from "js-cookie";
+
+import dayjs from "dayjs";
+import objectSupport from "dayjs/plugin/objectSupport";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(objectSupport);
+dayjs.extend(utc);
 
 const slots1 = [
   {
-    id: 1,
-    timing: "12:00PM to 12:30PM",
-    period: "afternoon",
+    id: 0,
+    startTime: "2023-06-18T18:30:00Z",
+    endTime: "2023-06-18T19:00:00Z",
     selected: true,
+    period: "lateNight",
+  },
+  {
+    id: 1,
+    startTime: "2023-06-18T19:00:00Z",
+    endTime: "2023-06-18T19:30:00Z",
+    selected: true,
+    period: "lateNight",
   },
   {
     id: 2,
-    timing: "12:30PM to 1:00PM",
-    period: "afternoon",
+    startTime: "2023-06-18T19:30:00Z",
+    endTime: "2023-06-18T20:00:00Z",
     selected: true,
+    period: "lateNight",
   },
   {
     id: 3,
-    timing: "1:00PM to 1:30PM",
-    period: "afternoon",
+    startTime: "2023-06-18T20:00:00Z",
+    endTime: "2023-06-18T20:30:00Z",
     selected: true,
+    period: "lateNight",
   },
   {
     id: 4,
-    timing: "1:30PM to 2:00PM",
-    period: "afternoon",
+    startTime: "2023-06-18T20:30:00Z",
+    endTime: "2023-06-18T21:00:00Z",
     selected: true,
+    period: "lateNight",
   },
   {
     id: 5,
-    timing: "2:00PM to 2:30PM",
-    period: "afternoon",
+    startTime: "2023-06-18T21:00:00Z",
+    endTime: "2023-06-18T21:30:00Z",
     selected: true,
+    period: "lateNight",
   },
   {
     id: 6,
-    timing: "2:30PM to 3:00PM",
-    period: "afternoon",
+    startTime: "2023-06-18T21:30:00Z",
+    endTime: "2023-06-18T22:00:00Z",
     selected: true,
+    period: "lateNight",
   },
   {
     id: 7,
-    timing: "3:00PM to 3:30PM",
-    period: "afternoon",
+    startTime: "2023-06-18T22:00:00Z",
+    endTime: "2023-06-18T22:30:00Z",
     selected: true,
+    period: "lateNight",
   },
   {
     id: 8,
-    timing: "3:30PM to 4:00PM",
-    period: "afternoon",
+    startTime: "2023-06-18T22:30:00Z",
+    endTime: "2023-06-18T23:00:00Z",
     selected: true,
+    period: "lateNight",
   },
   {
     id: 9,
-    timing: "4:00PM to 4:30PM",
-    period: "afternoon",
+    startTime: "2023-06-18T23:00:00Z",
+    endTime: "2023-06-18T23:30:00Z",
     selected: true,
+    period: "lateNight",
   },
   {
     id: 10,
-    timing: "4:30PM to 5:00PM",
-    period: "afternoon",
+    startTime: "2023-06-18T23:30:00Z",
+    endTime: "2023-06-19T00:00:00Z",
     selected: true,
+    period: "lateNight",
   },
   {
     id: 11,
-    timing: "5:00PM to 5:30PM",
-    period: "afternoon",
+    startTime: "2023-06-19T00:00:00Z",
+    endTime: "2023-06-19T00:30:00Z",
     selected: true,
+    period: "lateNight",
   },
   {
     id: 12,
-    timing: "5:30PM to 6:00PM",
-    period: "afternoon",
+    startTime: "2023-06-19T00:30:00Z",
+    endTime: "2023-06-19T01:00:00Z",
     selected: true,
+    period: "morning",
   },
   {
     id: 13,
-    timing: "6:00PM to 6:30PM",
-    period: "night",
+    startTime: "2023-06-19T01:00:00Z",
+    endTime: "2023-06-19T01:30:00Z",
     selected: true,
+    period: "morning",
   },
   {
     id: 14,
-    timing: "6:30PM to 7:00PM",
-    period: "night",
+    startTime: "2023-06-19T01:30:00Z",
+    endTime: "2023-06-19T02:00:00Z",
     selected: true,
+    period: "morning",
   },
   {
     id: 15,
-    timing: "7:00PM to 7:30PM",
-    period: "night",
+    startTime: "2023-06-19T02:00:00Z",
+    endTime: "2023-06-19T02:30:00Z",
     selected: true,
+    period: "morning",
   },
   {
     id: 16,
-    timing: "7:30PM to 8:00PM",
-    period: "night",
+    startTime: "2023-06-19T02:30:00Z",
+    endTime: "2023-06-19T03:00:00Z",
     selected: true,
+    period: "morning",
   },
   {
     id: 17,
-    timing: "8:00PM to 8:30PM",
-    period: "night",
+    startTime: "2023-06-19T03:00:00Z",
+    endTime: "2023-06-19T03:30:00Z",
     selected: true,
+    period: "morning",
   },
   {
     id: 18,
-    timing: "8:30PM to 9:00PM",
-    period: "night",
+    startTime: "2023-06-19T03:30:00Z",
+    endTime: "2023-06-19T04:00:00Z",
     selected: true,
+    period: "morning",
   },
   {
     id: 19,
-    timing: "9:00PM to 9:30PM",
-    period: "night",
+    startTime: "2023-06-19T04:00:00Z",
+    endTime: "2023-06-19T04:30:00Z",
     selected: true,
+    period: "morning",
   },
   {
     id: 20,
-    timing: "9:30PM to 10:00PM",
-    period: "night",
+    startTime: "2023-06-19T04:30:00Z",
+    endTime: "2023-06-19T05:00:00Z",
     selected: true,
+    period: "morning",
   },
   {
     id: 21,
-    timing: "10:00PM to 10:30PM",
-    period: "night",
+    startTime: "2023-06-19T05:00:00Z",
+    endTime: "2023-06-19T05:30:00Z",
     selected: true,
+    period: "morning",
   },
   {
     id: 22,
-    timing: "10:30PM to 11:00PM",
-    period: "night",
+    startTime: "2023-06-19T05:30:00Z",
+    endTime: "2023-06-19T06:00:00Z",
     selected: true,
+    period: "morning",
   },
   {
     id: 23,
-    timing: "11:00PM to 11:30PM",
-    period: "night",
+    startTime: "2023-06-19T06:00:00Z",
+    endTime: "2023-06-19T06:30:00Z",
     selected: true,
+    period: "morning",
   },
   {
     id: 24,
-    timing: "11:30PM to 12:00PM",
-    period: "night",
+    startTime: "2023-06-19T06:30:00Z",
+    endTime: "2023-06-19T07:00:00Z",
     selected: true,
+    period: "afternoon",
   },
   {
     id: 25,
-    timing: "12:00AM to 12:30AM",
-    period: "lateNight",
+    startTime: "2023-06-19T07:00:00Z",
+    endTime: "2023-06-19T07:30:00Z",
     selected: true,
+    period: "afternoon",
   },
   {
     id: 26,
-    timing: "12:30AM to 1:00AM",
-    period: "lateNight",
+    startTime: "2023-06-19T07:30:00Z",
+    endTime: "2023-06-19T08:00:00Z",
     selected: true,
+    period: "afternoon",
   },
   {
     id: 27,
-    timing: "1:00AM to 1:30AM",
-    period: "lateNight",
+    startTime: "2023-06-19T08:00:00Z",
+    endTime: "2023-06-19T08:30:00Z",
     selected: true,
+    period: "afternoon",
   },
   {
     id: 28,
-    timing: "1:30AM to 2:00AM",
-    period: "lateNight",
+    startTime: "2023-06-19T08:30:00Z",
+    endTime: "2023-06-19T09:00:00Z",
     selected: true,
+    period: "afternoon",
   },
   {
     id: 29,
-    timing: "2:00AM to 2:30AM",
-    period: "lateNight",
+    startTime: "2023-06-19T09:00:00Z",
+    endTime: "2023-06-19T09:30:00Z",
     selected: true,
+    period: "afternoon",
   },
   {
     id: 30,
-    timing: "2:30AM to 3:00AM",
-    period: "lateNight",
+    startTime: "2023-06-19T09:30:00Z",
+    endTime: "2023-06-19T10:00:00Z",
     selected: true,
+    period: "afternoon",
   },
   {
     id: 31,
-    timing: "3:00AM to 3:30AM",
-    period: "lateNight",
+    startTime: "2023-06-19T10:00:00Z",
+    endTime: "2023-06-19T10:30:00Z",
     selected: true,
+    period: "afternoon",
   },
   {
     id: 32,
-    timing: "3:30AM to 4:00AM",
-    period: "lateNight",
+    startTime: "2023-06-19T10:30:00Z",
+    endTime: "2023-06-19T11:00:00Z",
     selected: true,
+    period: "afternoon",
   },
   {
     id: 33,
-    timing: "4:00AM to 4:30AM",
-    period: "lateNight",
+    startTime: "2023-06-19T11:00:00Z",
+    endTime: "2023-06-19T11:30:00Z",
     selected: true,
+    period: "afternoon",
   },
   {
     id: 34,
-    timing: "4:30AM to 5:00AM",
-    period: "lateNight",
+    startTime: "2023-06-19T11:30:00Z",
+    endTime: "2023-06-19T12:00:00Z",
     selected: true,
+    period: "afternoon",
   },
   {
     id: 35,
-    timing: "5:00AM to 5:30AM",
-    period: "lateNight",
+    startTime: "2023-06-19T12:00:00Z",
+    endTime: "2023-06-19T12:30:00Z",
     selected: true,
+    period: "afternoon",
   },
   {
     id: 36,
-    timing: "5:30AM to 6:00AM",
-    period: "lateNight",
+    startTime: "2023-06-19T12:30:00Z",
+    endTime: "2023-06-19T13:00:00Z",
     selected: true,
+    period: "night",
   },
   {
     id: 37,
-    timing: "6:00AM to 6:30AM",
-    period: "morning",
+    startTime: "2023-06-19T13:00:00Z",
+    endTime: "2023-06-19T13:30:00Z",
     selected: true,
+    period: "night",
   },
   {
     id: 38,
-    timing: "6:30AM to 7:00AM",
-    period: "morning",
+    startTime: "2023-06-19T13:30:00Z",
+    endTime: "2023-06-19T14:00:00Z",
     selected: true,
+    period: "night",
   },
   {
     id: 39,
-    timing: "7:00AM to 7:30AM",
-    period: "morning",
+    startTime: "2023-06-19T14:00:00Z",
+    endTime: "2023-06-19T14:30:00Z",
     selected: true,
+    period: "night",
   },
   {
     id: 40,
-    timing: "7:30AM to 8:00AM",
-    period: "morning",
+    startTime: "2023-06-19T14:30:00Z",
+    endTime: "2023-06-19T15:00:00Z",
     selected: true,
+    period: "night",
   },
   {
     id: 41,
-    timing: "8:00AM to 8:30AM",
-    period: "morning",
+    startTime: "2023-06-19T15:00:00Z",
+    endTime: "2023-06-19T15:30:00Z",
     selected: true,
+    period: "night",
   },
   {
     id: 42,
-    timing: "8:30AM to 9:00AM",
-    period: "morning",
+    startTime: "2023-06-19T15:30:00Z",
+    endTime: "2023-06-19T16:00:00Z",
     selected: true,
+    period: "night",
   },
   {
     id: 43,
-    timing: "9:00AM to 9:30AM",
-    period: "morning",
+    startTime: "2023-06-19T16:00:00Z",
+    endTime: "2023-06-19T16:30:00Z",
     selected: true,
+    period: "night",
   },
   {
     id: 44,
-    timing: "9:30AM to 10:00AM",
-    period: "morning",
+    startTime: "2023-06-19T16:30:00Z",
+    endTime: "2023-06-19T17:00:00Z",
     selected: true,
+    period: "night",
   },
   {
     id: 45,
-    timing: "10:00AM to 10:30AM",
-    period: "morning",
+    startTime: "2023-06-19T17:00:00Z",
+    endTime: "2023-06-19T17:30:00Z",
     selected: true,
+    period: "night",
   },
   {
     id: 46,
-    timing: "10:30AM to 11:00AM",
-    period: "morning",
+    startTime: "2023-06-19T17:30:00Z",
+    endTime: "2023-06-19T18:00:00Z",
     selected: true,
+    period: "night",
   },
   {
     id: 47,
-    timing: "11:00AM to 11:30AM",
-    period: "morning",
+    startTime: "2023-06-19T18:00:00Z",
+    endTime: "2023-06-18T18:30:00Z",
     selected: true,
-  },
-  {
-    id: 48,
-    timing: "11:30AM to 12:00AM",
-    period: "morning",
-    selected: true,
+    period: "night",
   },
 ];
 
 interface slot {
   id: number;
-  timing: string;
+  startTime: string;
+  endTime: string;
   selected: boolean;
   period: string;
 }
@@ -365,7 +420,6 @@ const SignupStep3 = ({ signupState }: props) => {
   const [loading, setLoading] = React.useState(false);
   const [slots, setSlots] = React.useState<slot[]>(slots1);
 
-  console.log({ signupState });
   const onSubmit = async (data: FormData) => {
     //console.log({ data });
 
@@ -393,7 +447,6 @@ const SignupStep3 = ({ signupState }: props) => {
         bookingSlots: newSlots,
         minSlotPrice,
         maxSlotPrice,
-        //boxCricketImages: signupState?.boxCricketImages?.[0]?.originFileObj,
       };
     }
 
@@ -415,19 +468,33 @@ const SignupStep3 = ({ signupState }: props) => {
       }
     }
 
-    setLoading(true);
-    const result = await fetch("/api/owner/registerNewOwner", {
-      method: "POST",
-      body: fd,
-    });
-    const response = await result.json();
-    if (response.status === 201) {
-      message.success("User added");
-      router.push("/");
-    } else {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/owner/registerNewOwner", {
+        method: "POST",
+        body: fd,
+      });
+      const result = await response.json();
+      if (result.status === 201) {
+        const currentUser = {
+          userType: "owner",
+          name: result.newOwner.ownerName,
+          phone: result.newOwner.ownerPhone,
+          id: result.newOwner.id,
+        };
+        Cookies.set("currentUser", JSON.stringify(currentUser), { expires: 1 });
+        Cookies.set("token", result.token);
+        message.success("User added");
+        router.push("/owner");
+      } else {
+        message.info("something went wrong");
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
       message.info("something went wrong");
     }
-    setLoading(false);
   };
 
   //handle Slots
@@ -451,20 +518,31 @@ const SignupStep3 = ({ signupState }: props) => {
             sx={slot.selected ? styles.selectedCard : styles.card}
           >
             <CardActionArea>
-              <CardContent>
+              <CardContent sx={{ px: 1, py: 2 }}>
                 <Typography align="center" variant="body2" component="p">
-                  {slot.timing}
+                  {dayjs(slot.startTime).local().format("hh:mm")} -{" "}
+                  {dayjs(slot.endTime).local().format("hh:mm A")}
                 </Typography>
                 <Typography align="center" variant="body2" component="p">
                   {slot.selected ? "Available" : "Not Available"}
                 </Typography>
-                {/* {slot.selected ? (
+                {slot.selected ? (
                   <CheckSharpIcon
-                    sx={{ position: "absolute", top: 0, right: 0 }}
+                    sx={{
+                      width: "18px",
+                      height: "18px",
+                      position: "absolute",
+                      top: 2,
+                      border: "1px solid",
+                      borderRadius: "100%",
+                      right: 2,
+                      color: "white",
+                      backgroundColor: "green",
+                    }}
                   />
                 ) : (
                   ""
-                )} */}
+                )}
               </CardContent>
             </CardActionArea>
           </Card>
@@ -491,19 +569,24 @@ const SignupStep3 = ({ signupState }: props) => {
           </Grid>
 
           {/* night     */}
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ overflowX: "auto" }}>
             <Box
               sx={{
-                // border: "1px solid",
+                borderBottom: "1px solid #ccc",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
+                pt: "1rem",
+                pb: ".2rem",
+                minWidth: "450px",
               }}
             >
-              <Typography variant="h6">Night (6:00 to 12:00PM)</Typography>
+              <Typography variant="body1" fontWeight={500}>
+                Night (6:00 to 12:00PM)
+              </Typography>
 
               <Input
-                type="number"
+                type="tel"
                 {...register("night")}
                 helperText={errors?.night?.message}
                 error={errors?.night?.message ? true : false}
@@ -511,24 +594,27 @@ const SignupStep3 = ({ signupState }: props) => {
               />
             </Box>
           </Grid>
-          {showAllSlots(12, 24)}
+          {showAllSlots(36, 48)}
 
           {/* latenight     */}
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ overflowX: "auto" }}>
             <Box
               sx={{
-                // border: "1px solid",
+                borderBottom: "1px solid #ccc",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
+                pt: "1rem",
+                pb: ".2rem",
+                minWidth: "450px",
               }}
             >
-              <Typography variant="h6">
-                Late Night (12:00AM to 6:00AM)
+              <Typography variant="body1" fontWeight={500}>
+                Late Night (12:00 to 6:00AM)
               </Typography>
               <Input
                 //fullWidth
-                type="number"
+                type="tel"
                 {...register("lateNight")}
                 helperText={errors?.lateNight?.message}
                 error={errors?.lateNight?.message ? true : false}
@@ -536,21 +622,26 @@ const SignupStep3 = ({ signupState }: props) => {
               />
             </Box>
           </Grid>
-          {showAllSlots(24, 36)}
+          {showAllSlots(0, 12)}
 
           {/* morning     */}
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ overflowX: "auto" }}>
             <Box
               sx={{
-                // border: "1px solid",
+                borderBottom: "1px solid #ccc",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
+                pt: "1rem",
+                pb: ".2rem",
+                minWidth: "450px",
               }}
             >
-              <Typography variant="h6">Morning (6:00 to 12:00AM)</Typography>
+              <Typography variant="body1" fontWeight={500}>
+                Morning (6:00 to 12:00AM)
+              </Typography>
               <Input
-                type="number"
+                type="tel"
                 {...register("morning")}
                 helperText={errors?.morning?.message}
                 error={errors?.morning?.message ? true : false}
@@ -558,21 +649,26 @@ const SignupStep3 = ({ signupState }: props) => {
               />
             </Box>
           </Grid>
-          {showAllSlots(36, 48)}
+          {showAllSlots(12, 24)}
 
           {/* afternoon     */}
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ overflowX: "auto" }}>
             <Box
               sx={{
-                // border: "1px solid",
+                borderBottom: "1px solid #ccc",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
+                pt: "1rem",
+                pb: ".2rem",
+                minWidth: "450px",
               }}
             >
-              <Typography variant="h6">Afternoon (12:00 to 6:00PM)</Typography>
+              <Typography variant="body1" fontWeight={500}>
+                Afternoon (12:00 to 6:00PM)
+              </Typography>
               <Input
-                type="number"
+                type="tel"
                 //disabled={otpMessage === "" ? true : false}
                 {...register("afternoon")}
                 helperText={errors?.afternoon?.message}
@@ -581,18 +677,18 @@ const SignupStep3 = ({ signupState }: props) => {
               />
             </Box>
           </Grid>
-          {showAllSlots(0, 12)}
+          {showAllSlots(24, 36)}
         </Grid>
 
         <Box sx={{ my: "2rem", display: "flex", justifyContent: "flex-end" }}>
           <CommonButton
-            sx={{ px: 8, py: 1.5 }}
+            sx={{ px: 5, py: 1 }}
             variant="contained"
             type="submit"
             disabled={loading}
             endIcon={<SendIcon />}
           >
-            Signup
+            {loading ? <Spin /> : "Signup"}
           </CommonButton>
         </Box>
       </form>

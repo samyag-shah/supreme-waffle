@@ -2,14 +2,14 @@ import { NextApiRequest, NextApiResponse, PageConfig } from 'next';
 const { Readable } = require('stream');
 
 import { createRouter } from "next-connect";
-import multer from 'multer';
-
 import { PrismaClient } from '@prisma/client';
-const { S3Client } = require("@aws-sdk/client-s3");
 import { Upload } from "@aws-sdk/lib-storage";
 
+import multer from 'multer';
 import jwt from 'jsonwebtoken'
+import { body, validationResult } from 'express-validator';
 
+const { S3Client } = require("@aws-sdk/client-s3");
 
 export const config : PageConfig = {
     api : {
@@ -18,7 +18,8 @@ export const config : PageConfig = {
 }
 interface NextApiRequest1 extends NextApiRequest {
     files: any[]
-}  
+}
+
 const prisma = new PrismaClient()
 const router = createRouter<NextApiRequest1, NextApiResponse>()
 
@@ -36,86 +37,126 @@ const upload = multer({storage}).array('files')
 //wrong types of multer
 router.use(upload as any)
 
+router.use(async (req, res, next) => {
+    //console.log({boxCricketId: req.query.boxCricketId})
+    const validations = [
+        body('ownerName').trim().notEmpty().withMessage("ownerName is required"),
+        body('ownerEmail').trim().notEmpty().withMessage("ownerEmail is required"),
+        body('ownerPhone').trim().notEmpty().withMessage("ownerPhone is required"),
+        body('boxCricketName').trim().notEmpty().withMessage("boxCricketName is required"),
+        body('boxCricketAddress').trim().notEmpty().withMessage("boxCricketAddress is required"),
+        body('boxCricketState').trim().notEmpty().withMessage("boxCricketState is required"),
+        body('boxCricketCity').trim().notEmpty().withMessage("boxCricketCity is required"),
+        body('boxCricketArea').trim().notEmpty().withMessage("boxCricketArea is required"),
+        body('boxCricketLandmark').trim().notEmpty().withMessage("boxCricketLandmark is required"),
+        body('boxCricketFreeFacilities').trim().notEmpty().withMessage("boxCricketFreeFacilities is required"),
+        body('boxCricketPaidFacilities').trim().notEmpty().withMessage("boxCricketPaidFacilities is required"),
+        body('bookingSlots').trim().notEmpty().withMessage("bookingSlots is required"),
+        body('minSlotPrice').trim().notEmpty().withMessage("minSlotPrice is required"),
+        body('maxSlotPrice').trim().notEmpty().withMessage("maxSlotPrice is required"),
+    ]
+    await Promise.all(validations.map(validation => validation.run(req)))
+    const errors = validationResult(req)
+    const err: any[] = []
+    errors.array().map((err1: any) => err.push({field: err1.slot, msg: err1.msg}))
+  
+    if (errors.isEmpty()) next()
+    else res.status(422).json({status: 422, message: "bad request", err})
+  })
+  
+
 router.post(async (req, res) => {
-    console.log({body: req.body, file : req.files})
-        try { 
-          const {
-            ownerEmail, 
-            ownerPhone, 
-            ownerName, 
-            boxCricketName, 
-            boxCricketAddress, 
-            boxCricketState,
-            boxCricketCity,
-            boxCricketArea,
-            boxCricketLandmark,
-            bookingSlots,
-            minSlotPrice,
-            maxSlotPrice,
-            boxCricketFacilities
-        } 
-           = req.body
+    const {
+        ownerName, 
+        ownerEmail, 
+        ownerPhone, 
+        boxCricketName, 
+        boxCricketAddress, 
+        boxCricketState,
+        boxCricketCity,
+        boxCricketArea,
+        boxCricketLandmark,
+        boxCricketFreeFacilities,
+        boxCricketPaidFacilities,
+        bookingSlots,
+        minSlotPrice,
+        maxSlotPrice,
+    } 
+       = req.body
 
-        const boxCricketImages1: any[] = []
-        req.files.map(async (file, index) => {
-            const buffer = file.buffer
-            const stream = Readable.from(buffer);
+    try {           
+        const owner = await prisma.owner.findFirst({
+            where: {
+                ownerPhone
+            }
+        })       
+        if (owner) {
+            res.json({status: 200, message: "owner already exists"})
+        } else {
+            const boxCricketImages1: any[] = []
+            
+            req.files.map(async (file, index) => {
+                const buffer = file.buffer
+                const stream = Readable.from(buffer);
 
-            let extenstion = file.mimetype.split("/")[1]
-            const uniqueSuffix = Date.now() +'-' + Math.round(Math.random()*1E9)
-            const fileName = file.fieldname + '-' + uniqueSuffix + '.' + extenstion
+                let extenstion = file.mimetype.split("/")[1]
+                const uniqueSuffix = Date.now() +'-' + Math.round(Math.random()*1E9)
+                const fileName = file.fieldname + '-' + uniqueSuffix + '.' + extenstion
 
-            const upload = new Upload({
-                client: client,
-                params: {
-                    Bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
-                    Key: fileName,
-                    Body: stream,
-                    ContentType: 'text/plain',
-                },
-            });
-        
-            await upload.done()
-            boxCricketImages1.push(process.env.S3_ACCESS_URL + fileName)
-            if(index === req.files.map.length-1){
-            //db create
-            const newOwner = await prisma.owner.create({
-                    data : {
-                        ownerName,
-                        ownerEmail,
-                        ownerPhone,
-                        Boxcrickets: {
-                            create: [{
-                                boxCricketName, 
-                                boxCricketAddress, 
-                                boxCricketState,
-                                boxCricketCity,
-                                boxCricketArea,
-                                boxCricketLandmark,
-                                minSlotPrice: parseInt(minSlotPrice),
-                                maxSlotPrice: parseInt(maxSlotPrice),
-                                boxCricketFacilities,
-                                boxCricketImages: boxCricketImages1, 
-                                bookingSlots: JSON.parse(bookingSlots)
-                                }
-                            ]
-                        } 
-                    }
-            })
-            //create Token
-            const payload = {
-                ownerPhone, 
-                ownerId: newOwner.id,
-                exp: Date.now()/1000 + 24*60*60
-            } 
-            const token = jwt.sign(payload, process.env.JWT_SECRET_KEY || "")
+                const upload = new Upload({
+                    client: client,
+                    params: {
+                        Bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
+                        Key: fileName,
+                        Body: stream,
+                        ContentType: 'text/plain',
+                    },
+                });
+            
+                await upload.done()
+                boxCricketImages1.push(process.env.S3_ACCESS_URL + fileName)
+                if(index === req.files.map.length-1){
+                //db create
+                const newOwner = await prisma.owner.create({
+                        data : {
+                            ownerName,
+                            ownerEmail,
+                            ownerPhone,
+                            Boxcrickets: {
+                                create: [{
+                                    boxCricketName, 
+                                    boxCricketAddress, 
+                                    boxCricketState,
+                                    boxCricketCity,
+                                    boxCricketArea,
+                                    boxCricketLandmark,
+                                    minSlotPrice: parseInt(minSlotPrice),
+                                    maxSlotPrice: parseInt(maxSlotPrice),
+                                    boxCricketFreeFacilities,
+                                    boxCricketPaidFacilities,
+                                    boxCricketImages: boxCricketImages1, 
+                                    bookingSlots: JSON.parse(bookingSlots)
+                                    }
+                                ]
+                            } 
+                        }
+                })
+
+                //create Token
+                const payload = {
+                    ownerPhone, 
+                    ownerId: newOwner.id,
+                    exp: Date.now()/1000 + 24*60*60
+                } 
+                const token = jwt.sign(payload, process.env.JWT_SECRET_KEY || "")
                 return res.json({status: 201, newOwner, token})
-            }   
-        })             
-        } catch(err: unknown){
-          console.error({err})
-          return res.status(500).json({status: 500, message : "something went wrong", err})
-        } 
+                }   
+            })
+        }     
+    } catch(err: unknown){
+        console.error({err})
+        return res.status(500).json({status: 500, message : "something went wrong", err})
+    } 
 })
 
 export default router.handler({
@@ -127,5 +168,5 @@ export default router.handler({
         //console.error(err?.stack);
         //res.status(err?.statusCode || 500).end(err?.message);
         return res.json({status: 405, message: "no method found"});
-      },
-  });
+    },
+});

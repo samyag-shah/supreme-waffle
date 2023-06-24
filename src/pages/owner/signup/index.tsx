@@ -46,7 +46,12 @@ const Signup = () => {
       >
         <Container maxWidth={"sm"} disableGutters>
           <Card
-            sx={{ minWidth: "350px", overflowX: "auto", padding: "1rem 2rem" }}
+            sx={{
+              m: "1rem 0",
+              minWidth: "350px",
+              overflowX: "auto",
+              padding: { xs: "1rem", sm: "1rem 2rem" },
+            }}
           >
             <Box sx={{ my: "2rem" }}>
               <Stepper activeStep={step} alternativeLabel>

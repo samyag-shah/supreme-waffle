@@ -48,10 +48,12 @@ export const styles = {
         border: '1px solid',
         backgroundColor: 'rgb(231, 235, 240)',
         //width: "150px"
+        //p: 0,
     },
     card : {
         backgroundColor: 'rgb(255, 255, 255)',
         //width: "150px"
+        //p: 0,
     }
 
 }

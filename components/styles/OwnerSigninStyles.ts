@@ -3,6 +3,9 @@ export const styles = {
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
+        backgroundColor: 'rgb(249, 250, 251)',
+        minWidth: "350px", 
+        overflowX: "auto"
     }, container : {
         border: '1px solid',
         borderRadius: '1rem'

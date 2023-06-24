@@ -1,14 +1,8 @@
-import React, { useState, Dispatch, SetStateAction } from "react";
+import React, { useState, Dispatch, SetStateAction, useEffect } from "react";
+import Link1 from "next/link";
 
 //mui
-import {
-  Box,
-  Typography,
-  Card,
-  Grid,
-  InputAdornment,
-  Link,
-} from "@mui/material";
+import { Box, Typography, Grid, InputAdornment, Link } from "@mui/material";
 import Input from "../../common/Input/Input";
 import CommonButton from "../../common/Button/CommonButton";
 
@@ -17,8 +11,8 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
-//styles
-import { styles } from "./styles";
+import { SignupState } from "@/pages/owner/signup";
+import { Spin, message } from "antd";
 
 //google auth
 import {
@@ -26,8 +20,12 @@ import {
   captchaVerifier,
 } from "../../../config/firebase/firebase";
 import { ConfirmationResult } from "firebase/auth";
-import { SignupState } from "@/pages/owner/signup";
-import { message } from "antd";
+
+import dayjs from "dayjs";
+import objectSupport from "dayjs/plugin/objectSupport";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(objectSupport);
+dayjs.extend(utc);
 
 interface props {
   setStep: Dispatch<SetStateAction<number>>;
@@ -57,6 +55,7 @@ type FormData = yup.InferType<typeof schema>;
 interface FormData1 extends FormData {
   otp: string;
 }
+
 const SignupStep1 = ({ setStep, setSignupState, signupState }: props) => {
   const {
     register,
@@ -69,6 +68,53 @@ const SignupStep1 = ({ setStep, setSignupState, signupState }: props) => {
     resolver: yupResolver(schema),
     defaultValues: { otp: "" },
   });
+
+  // useEffect(() => {
+  //   const calculatePeriod = (id: number) => {
+  //     console.log({ id });
+  //     if (id >= 1 && id <= 12) {
+  //       return "lateNight";
+  //     } else if (id >= 13 && id <= 24) {
+  //       return "morning";
+  //     } else if (id >= 25 && id <= 36) {
+  //       return "afternoon";
+  //     } else {
+  //       return "night";
+  //     }
+  //   };
+  //   const slots = [];
+  //   let count = 0;
+  //   for (let i = 0; i <= 23; i++) {
+  //     let obj1 = {
+  //       id: count++,
+  //       startTime: dayjs({ hour: i, minute: 0 }).utc().format(),
+  //       endTime: dayjs({ hour: i, minute: 30 }).utc().format(),
+  //       selected: true,
+  //       period: calculatePeriod(count),
+  //     };
+  //     let obj2 = {
+  //       id: count++,
+  //       startTime: dayjs({ hour: i, minute: 30 }).utc().format(),
+  //       endTime: dayjs({ hour: i + 1 === 24 ? 0 : i + 1, minute: 0 })
+  //         .utc()
+  //         .format(),
+  //       selected: true,
+  //       period: calculatePeriod(count),
+  //     };
+  //     slots.push(obj1, obj2);
+  //   }
+
+  //   console.log({ slots });
+  //   console.log({
+  //     slots: slots.map((slot: any) => {
+  //       return {
+  //         ...slot,
+  //         startTime: dayjs(slot.startTime).local().format("hh:mm A"),
+  //         endTime: dayjs(slot.endTime).local().format("hh:mm A"),
+  //       };
+  //     }),
+  //   });
+  // }, []);
 
   const [loading, setLoading] = useState(false);
   const [otpMessage, setOtpMessage] = useState("");
@@ -88,14 +134,12 @@ const SignupStep1 = ({ setStep, setSignupState, signupState }: props) => {
         body: JSON.stringify({ phone: data.ownerPhone }),
       });
       const response = await result.json();
-      setLoading(false);
 
       if (response.isRegistered) {
         //error as user is already registered
         message.warning("User is already registered");
       } else {
         //user is not registered so send otp
-        setLoading(true);
         // let phone = "+1" + "6505551234";
         // const captchaVerifier1 = captchaVerifier();
         // const ConfirmationResult = await signInWithPhone(
@@ -104,12 +148,10 @@ const SignupStep1 = ({ setStep, setSignupState, signupState }: props) => {
         //   captchaVerifier1
         // );
         // setPromise(ConfirmationResult);
-        setLoading(false);
         setEdit(true);
-        setOtpMessage(
-          `We have sent an SMS to ${data.ownerPhone}, Please Verify`
-        );
+        setOtpMessage(`We have sent an SMS to ${data.ownerPhone}, Verify`);
       }
+      setLoading(false);
     } catch (err: unknown) {
       setLoading(false);
       console.error({ err, message: "something went wrong" });
@@ -119,9 +161,11 @@ const SignupStep1 = ({ setStep, setSignupState, signupState }: props) => {
 
   const verifyOtp = async (data: FormData1) => {
     try {
+      setLoading(true);
       //await promise?.confirm(data.otp);
       setStep(1);
       setSignupState({ ...data });
+      setLoading(false);
     } catch (err) {
       console.error("error");
     }
@@ -206,7 +250,7 @@ const SignupStep1 = ({ setStep, setSignupState, signupState }: props) => {
 
           {otpMessage && (
             <Grid item xs={12}>
-              <Typography sx={{ color: "blue", my: ".5rem" }}>
+              <Typography variant="body2" sx={{ color: "blue", my: ".5rem" }}>
                 {otpMessage}
               </Typography>
               <Input
@@ -222,15 +266,39 @@ const SignupStep1 = ({ setStep, setSignupState, signupState }: props) => {
           )}
         </Grid>
 
-        <Box sx={{ my: "2rem", display: "flex", justifyContent: "flex-end" }}>
+        <Box
+          sx={{
+            my: "2rem",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "1rem",
+            }}
+          >
+            Have account?
+            <Link
+              style={{
+                marginLeft: ".5rem",
+                textDecoration: "none",
+              }}
+              href="/owner/signin"
+            >
+              Signin
+            </Link>
+          </span>
           <CommonButton
-            variant="contained"
+            variant="outlined"
             //type="submit"
-            sx={{ px: 8, py: 1.5 }}
+            sx={{ px: 5, py: 1 }}
             onClick={handleSubmit(onSubmit)}
             disabled={otpMessage == "" || loading}
           >
-            Next
+            {loading ? <Spin /> : "Next"}
           </CommonButton>
         </Box>
       </form>

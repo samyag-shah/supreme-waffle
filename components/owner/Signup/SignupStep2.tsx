@@ -48,7 +48,11 @@ const schema = yup
       .string()
       .trim()
       .required("box cricket landmark is required"),
-    boxCricketFacilities: yup
+    boxCricketFreeFacilities: yup
+      .string()
+      .trim()
+      .required("Facilities is required"),
+    boxCricketPaidFacilities: yup
       .string()
       .trim()
       .required("Facilities is required"),
@@ -231,13 +235,25 @@ const SignupStep2 = ({ setSignupState, setStep, signupState }: props) => {
 
           <Grid item xs={12}>
             <Input
-              placeholder="Please add what do you provide to your players like bat, ball or stumps"
-              //label="Facilities"
+              placeholder="bat, ball, stumps etc or say NA"
+              label="Free Facilities"
               fullWidth
               type="text"
-              {...register("boxCricketFacilities")}
-              helperText={errors?.boxCricketFacilities?.message}
-              error={errors?.boxCricketFacilities?.message ? true : false}
+              {...register("boxCricketFreeFacilities")}
+              helperText={errors?.boxCricketFreeFacilities?.message}
+              error={errors?.boxCricketFreeFacilities?.message ? true : false}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <Input
+              placeholder="water, colddrinks etc or say NA"
+              label="Paid Facilities"
+              fullWidth
+              type="text"
+              {...register("boxCricketPaidFacilities")}
+              helperText={errors?.boxCricketPaidFacilities?.message}
+              error={errors?.boxCricketPaidFacilities?.message ? true : false}
             />
           </Grid>
 
@@ -258,7 +274,9 @@ const SignupStep2 = ({ setSignupState, setStep, signupState }: props) => {
                   name={field.name}
                   //onBlur={field.onBlur}
                   onPreview={handlePreview}
-                  ref={field.ref}
+                  // ref={(ref) => {
+                  //   console.log({ ref });
+                  // }}
                   onChange={handleChange}
                 >
                   {field?.value?.length >= 3 ? null : uploadButton}
@@ -282,11 +300,7 @@ const SignupStep2 = ({ setSignupState, setStep, signupState }: props) => {
         </Modal>
 
         <Box sx={{ my: "2rem", display: "flex", justifyContent: "flex-end" }}>
-          <CommonButton
-            variant="contained"
-            sx={{ px: 8, py: 1.5 }}
-            type="submit"
-          >
+          <CommonButton variant="contained" sx={{ px: 5, py: 1 }} type="submit">
             Next
           </CommonButton>
         </Box>

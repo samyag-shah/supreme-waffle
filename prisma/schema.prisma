@@ -15,39 +15,43 @@ model User {
   email       String?  
   phone       String?  
   username    String
-  loginMethod Method     @default(Email)
   createdAt   DateTime   @default(now())
 }
 
 model Owner {
   id                    String     @default(cuid()) @id
-  ownerEmail            String?  
-  ownerPhone            String  
   ownerName             String
+  ownerPhone            String  
+  ownerEmail            String?  
   createdAt             DateTime   @default(now())
   Boxcrickets           Boxcricket[]
 }
 
 model Boxcricket {
-  id                    String   @default(cuid()) @id
-  boxCricketName        String
-  boxCricketState       String
-  boxCricketCity        String
-  boxCricketArea        String
-  boxCricketLandmark    String
-  boxCricketAddress     String
-  bookingSlots          Json
-  boxCricketImages      Json
-  minSlotPrice          Int
-  maxSlotPrice          Int
-  boxCricketFacilities  String
-  createdAt             DateTime @default(now())
-  owner                 Owner    @relation(fields: [ownerId], references: [id])    
-  ownerId               String
+  id                        String   @default(cuid()) @id
+  boxCricketName            String
+  boxCricketState           String
+  boxCricketCity            String
+  boxCricketArea            String
+  boxCricketLandmark        String
+  boxCricketAddress         String
+  boxCricketImages          Json
+  boxCricketFreeFacilities  String
+  boxCricketPaidFacilities  String
+  bookingSlots              Json
+  minSlotPrice              Int
+  maxSlotPrice              Int
+  createdAt                 DateTime @default(now())
+  owner                     Owner    @relation(fields: [ownerId], references: [id])    
+  ownerId                   String
+  bookings                  Booking[]
 }
 
-enum Method {
-  Email
-  Phone
+model Booking {
+  id               String @default(cuid()) @id
+  date             String  
+  slots            Json  
+  boxCricket       Boxcricket   @relation(fields: [boxCricketId], references: [id])
+  boxCricketId     String      
+  createdAt        DateTime @default(now()) 
 }
-
