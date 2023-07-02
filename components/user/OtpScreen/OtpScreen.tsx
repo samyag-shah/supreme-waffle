@@ -39,6 +39,7 @@ interface props {
   pageType: string;
   setPromise: Dispatch<SetStateAction<ConfirmationResult | undefined>>;
   captcha: RecaptchaVerifier | undefined;
+  loginType: string;
 }
 
 const OtpScreen = ({
@@ -48,6 +49,7 @@ const OtpScreen = ({
   setPage,
   signupState,
   captcha,
+  loginType,
 }: props) => {
   const {
     register,
@@ -98,6 +100,7 @@ const OtpScreen = ({
     const response = await result.json();
     if (response?.newUser?.id) {
       let currentUser = {
+        id: response?.newUser?.id,
         username: response?.newUser?.username,
         phone: response?.newUser.phone,
         userType: "user",
@@ -106,7 +109,7 @@ const OtpScreen = ({
         expires: 7,
       });
       Cookies.set("token", response?.token, { expires: 1 });
-      router.push("/");
+      loginType !== "modal" ? router.push("/") : router.push("/user/booking");
     }
   };
 
@@ -125,6 +128,7 @@ const OtpScreen = ({
     const response = await result.json();
     if (response?.user?.id) {
       let currentUser = {
+        id: response?.user?.id,
         username: response?.user?.username,
         phone: response?.user.phone,
         userType: "user",
@@ -133,34 +137,42 @@ const OtpScreen = ({
         expires: 7,
       });
       Cookies.set("token", response?.token, { expires: 1 });
-      router.push("/");
+      loginType !== "modal" ? router.push("/") : router.push("/user/booking");
     }
   };
 
   const onSubmit = (data: FormData) => {
     //console.log(data);
-    setLoading(true);
-    if (promise) {
-      promise
-        .confirm(data.otp)
-        .then((res) => {
-          console.log({ pageType });
-          if (pageType === "signup") {
-            registerNewUser();
-          } else if (pageType === "signin") {
-            signinUser();
-            //router.push("/");
-          }
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error({ error });
-          setLoading(false);
-          setSeverity("error");
-          setMessage("Incorrect Code Please try again");
-          setOpenFeedBack(true);
-        });
+
+    if (pageType === "signup") {
+      registerNewUser();
+    } else if (pageType === "signin") {
+      signinUser();
+      //router.push("/");
     }
+
+    // setLoading(true);
+    // if (promise) {
+    //   promise
+    //     .confirm(data.otp)
+    //     .then((res) => {
+    //       console.log({ pageType });
+    //       if (pageType === "signup") {
+    //         registerNewUser();
+    //       } else if (pageType === "signin") {
+    //         signinUser();
+    //         //router.push("/");
+    //       }
+    //       setLoading(false);
+    //     })
+    //     .catch((error) => {
+    //       console.error({ error });
+    //       setLoading(false);
+    //       setSeverity("error");
+    //       setMessage("Incorrect Code Please try again");
+    //       setOpenFeedBack(true);
+    //     });
+    // }
   };
 
   const handleTimer = () => {

@@ -138,7 +138,7 @@ export default function Home() {
           </Card>
         </Box>
 
-        <Stack direction="row" gap={2} sx={{ border: "1px solid" }}>
+        <Stack direction="row" gap={2}>
           <StyledBox1>
             <Grid container spacing={2} sx={{ padding: "1rem" }}>
               <Grid item xs={12}>
@@ -243,7 +243,7 @@ export default function Home() {
                                 onClick={() =>
                                   router.push(`/boxCricket/${box.id}`)
                                 }
-                                variant="outlined"
+                                variant="contained"
                                 sx={{
                                   width: { xs: "100%", sm: "50%", md: "25%" },
                                 }}

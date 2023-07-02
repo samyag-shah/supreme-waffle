@@ -22,7 +22,6 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_StorageBucket,
   messagingSenderId: process.env.NEXT_PUBLIC_MessagingSenderId,
   appId: process.env.NEXT_PUBLIC_AppId,
-  //measurementId: "G-VNHHHX7E76"
 };
 
 // Initialize Firebase
@@ -61,6 +60,5 @@ export const signInWithPhone = async (phone, captchaVerifier) => {
 export const signInWithGmail = async () => {
   const provider = new GoogleAuthProvider();
   const response = await signInWithPopup(auth, provider);
-  console.log({ response });
   return response.user;
 };

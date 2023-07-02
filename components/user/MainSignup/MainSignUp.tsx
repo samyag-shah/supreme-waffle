@@ -39,8 +39,10 @@ type FormData = yup.InferType<typeof schema>;
 interface props {
   page: number;
   pageType: string;
+  loginType: string;
   captcha: RecaptchaVerifier | undefined;
   setPage: Dispatch<SetStateAction<number>>;
+  setPageType: Dispatch<SetStateAction<string>>;
   signupState: signupType;
   setSignupState: Dispatch<SetStateAction<signupType>>;
   setPromise: Dispatch<SetStateAction<ConfirmationResult | undefined>>;
@@ -55,6 +57,8 @@ const MainSignUp = ({
   pageType,
   setCaptcha,
   captcha,
+  loginType,
+  setPageType,
 }: props) => {
   const {
     register,
@@ -108,15 +112,15 @@ const MainSignUp = ({
         setOpenFeedBack(true);
       } else {
         setLoading(true);
-        let captcha1;
-        if (!captcha) {
-          captcha1 = captchaVerifier();
-        } else {
-          captcha1 = captcha;
-        }
-        const confirmationResult = await signInWithPhone(phone, captcha1);
-        setPromise(confirmationResult);
-        setCaptcha(captcha1);
+        // let captcha1;
+        // if (!captcha) {
+        //   captcha1 = captchaVerifier();
+        // } else {
+        //   captcha1 = captcha;
+        // }
+        // const confirmationResult = await signInWithPhone(phone, captcha1);
+        // setPromise(confirmationResult);
+        // setCaptcha(captcha1);
         setSignupState({ ...signupState, ...data });
         setPage(2);
       }
@@ -166,7 +170,7 @@ const MainSignUp = ({
         disabled={loading}
         size="large"
       >
-        {loading ? <Spin tip="loading" /> : <b>Next</b>}
+        {loading ? <Spin /> : <b>Next</b>}
       </CommonButton>
 
       <FeedBack
@@ -176,13 +180,27 @@ const MainSignUp = ({
         message={message}
       />
 
-      <Typography align={"right"} sx={styles.link}>
-        <Link href={pageType === "signin" ? "/user/signup" : "/user/signin"}>
+      {loginType === "page" ? (
+        <Typography align={"right"} sx={styles.link}>
+          <Link href={pageType === "signin" ? "/user/signup" : "/user/signin"}>
+            {pageType === "signin"
+              ? "Don't have an Account? Signup"
+              : "Already have an account? Signin"}
+          </Link>
+        </Typography>
+      ) : (
+        <Typography
+          align={"right"}
+          sx={{ ...styles.link, color: "blue", cursor: "pointer" }}
+          onClick={() =>
+            setPageType(pageType === "signin" ? "signup" : "signin")
+          }
+        >
           {pageType === "signin"
             ? "Don't have an Account? Signup"
             : "Already have an account? Signin"}
-        </Link>
-      </Typography>
+        </Typography>
+      )}
     </form>
   );
 };

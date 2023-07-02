@@ -15,6 +15,7 @@ model User {
   email       String?  
   phone       String?  
   username    String
+  bookings    Userbooking[]
   createdAt   DateTime   @default(now())
 }
 
@@ -45,6 +46,7 @@ model Boxcricket {
   owner                     Owner    @relation(fields: [ownerId], references: [id])    
   ownerId                   String
   bookings                  Booking[]
+  userBookings              Userbooking[]
 }
 
 model Booking {
@@ -54,4 +56,15 @@ model Booking {
   boxCricket       Boxcricket   @relation(fields: [boxCricketId], references: [id])
   boxCricketId     String      
   createdAt        DateTime @default(now()) 
+}
+
+model Userbooking {
+  id           String @default(cuid()) @id
+  user         User  @relation(fields: [userId], references: [id])
+  userId       String
+  booking      Boxcricket @relation(fields: [boxCricketId], references: [id]) 
+  boxCricketId String
+  userBookings Json 
+  date         String
+  createdAt    DateTime @default(now())
 }

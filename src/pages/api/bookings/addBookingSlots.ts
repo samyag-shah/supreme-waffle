@@ -10,7 +10,6 @@ const router = createRouter<NextApiRequest, NextApiResponse>();
 
 //validate request data
 router.use(async (req, res, next) => {
-  //console.log({body : typeof req.body.date})
   const validations = [
     body("date")
       .trim()
@@ -40,7 +39,6 @@ router.post(async (req, res) => {
 
   try {
     const { date, slots, boxCricketId } = req.body;
-    console.log({ date, slots, boxCricketId });
 
     //check if booking already exists
     const booking = await prisma.booking.findFirst({

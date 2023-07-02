@@ -8,11 +8,8 @@ const prisma = new PrismaClient();
 
 router.use(async (req, res, next) => {
   const validations = [
-    body("date").trim().notEmpty().withMessage("date is required"),
-    body("boxCricketId")
-      .trim()
-      .notEmpty()
-      .withMessage("boxCricketId is required"),
+    //body("date").trim().notEmpty().withMessage("date is required"),
+    body("bookingId").trim().notEmpty().withMessage("booking Id is required"),
     body("slots").trim().notEmpty().withMessage("slots can't be empty"),
   ];
   await Promise.all(validations.map((validaiton) => validaiton.run(req)));
@@ -28,33 +25,35 @@ router.use(async (req, res, next) => {
 
 router.post(async (req, res) => {
   try {
-    const { date, boxCricketId, slots } = req.body;
-    console.log({ slots });
-    const booking = await prisma.booking.findFirst({
+    //const { date, boxCricketId, slots } = req.body;
+    const { bookingId, slots } = req.body;
+    //console.log({ slots });
+    // const booking = await prisma.booking.findFirst({
+    //   where: {
+    //     boxCricketId,
+    //     date,
+    //   },
+    // });
+    let booking1;
+    //if (booking) {
+    booking1 = await prisma.booking.update({
       where: {
-        boxCricketId,
-        date,
+        id: bookingId,
+      },
+      data: {
+        //date,
+        //boxCricketId,
+        slots: JSON.parse(slots),
       },
     });
-    let booking1;
-    if (booking) {
-      booking1 = await prisma.booking.update({
-        where: {
-          id: booking.id,
-        },
-        data: {
-          date,
-          boxCricketId,
-          slots: JSON.parse(slots),
-        },
-      });
-    }
+    //}
 
-    if (booking1) {
-      res.json({ statusCode: 200, message: "booking updated", booking });
-    } else {
-      res.json({ statusCode: 404, message: "Not Found", booking });
-    }
+    res.json({ status: 200, message: "booking updated", booking1 });
+    // if (booking1) {
+    //   res.json({ statusCode: 200, message: "booking updated", booking });
+    // } else {
+    //   res.json({ statusCode: 404, message: "Not Found", booking });
+    // }
   } catch (err) {
     console.error(err);
     res.json({ status: 500, message: "something went wrong" });

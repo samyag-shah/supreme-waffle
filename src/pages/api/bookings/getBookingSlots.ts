@@ -3,11 +3,14 @@ import { body, validationResult } from "express-validator";
 import { NextApiRequest, NextApiResponse } from "next";
 import { createRouter } from "next-connect";
 
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
+
 const router = createRouter<NextApiRequest, NextApiResponse>();
 const prisma = new PrismaClient();
 
 router.use(async (req, res, next) => {
-  //console.log({ req: req.body });
   const validations = [
     body("date").trim().notEmpty().withMessage("date is required"),
     body("boxCricketId")
@@ -29,15 +32,21 @@ router.use(async (req, res, next) => {
 router.post(async (req, res) => {
   try {
     const { date, boxCricketId } = req.body;
-    console.log({ date, boxCricketId });
-    const booking = await prisma.booking.findFirst({
+    const booking = await prisma.booking.findMany({
       where: {
-        date,
         boxCricketId,
       },
     });
-    if (booking) {
-      res.json({ status: 200, booking });
+
+    //check for todays local date
+    const findBooking = booking.find(
+      (item) =>
+        dayjs(item.date).local().format("DD/MM/YYYY") ===
+        dayjs(date).local().format("DD/MM/YYYY")
+    );
+
+    if (findBooking) {
+      res.json({ status: 200, booking: findBooking });
     } else {
       res.json({ status: 404, message: "Not Found" });
     }

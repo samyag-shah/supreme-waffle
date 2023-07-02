@@ -16,9 +16,13 @@ import {
 import { styled } from "@mui/material/styles";
 import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 
-import { Carousel, Spin, message } from "antd";
+import { Carousel, Modal, Spin, message } from "antd";
 
 import Header from "../../../components/Header/header";
+
+import Signin from "../user/signin";
+import Signup from "../user/signup";
+import Cookies from "js-cookie";
 
 //dayjs
 import dayjs, { Dayjs } from "dayjs";
@@ -61,10 +65,16 @@ interface box {
   boxCricketPaidFacilities: string;
 }
 
+interface Booking {
+  id: string;
+  date: string;
+}
+
 const BoxCricket = () => {
   const router = useRouter();
 
   const [boxCricket, setBoxCricket] = useState<box>();
+  const [booking, setBooking] = useState<Booking>();
   const [availableSlots, setAvailableSlots] = useState<Array<slot>>([]);
   const [filteredSlots, setFilteredSlots] = useState<Array<slot>>([]);
   const [price, setPrice] = useState<price>();
@@ -128,11 +138,8 @@ const BoxCricket = () => {
         .then((slots) => {
           let todaysSlots;
           if (slots.length) {
-            //console.log("i am in");
-            // todaysSlots = handleExistingSlots(slots);
             todaysSlots = computeSlots(slots, selectedDate, true);
           } else {
-            //console.log("i am here");
             todaysSlots = computeSlots(filteredSlots, selectedDate, false);
             createBooking(todaysSlots);
           }
@@ -232,7 +239,7 @@ const BoxCricket = () => {
     if (slots?.length) {
       try {
         setLoading(true);
-        const date = selectedDate.format("DD/MM/YYYY");
+        const date = selectedDate;
         const object1 = {
           date,
           slots: JSON.stringify(slots),
@@ -247,7 +254,8 @@ const BoxCricket = () => {
           body: JSON.stringify(object1),
         });
         const result = await response.json();
-        console.log({ result });
+        //console.log({ bookingResult: result });
+        setBooking(result.booking);
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -261,8 +269,7 @@ const BoxCricket = () => {
       date: selectedDate.date(),
       month: selectedDate.month(),
       year: selectedDate.year(),
-    }).format("DD/MM/YYYY");
-    //console.log({ date111 });
+    });
     const response1 = await fetch(`/api/bookings/getBookingSlots`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -275,7 +282,7 @@ const BoxCricket = () => {
     //console.log({ result1 });
     if (result1.status === 200) {
       // handle Today's slot from as booking table does have data
-      console.log({ result1 });
+      setBooking(result1.booking);
       return result1.booking.slots;
     } else {
       return [];
@@ -313,17 +320,13 @@ const BoxCricket = () => {
     let currentlyAvailableSlots = availableSlots.filter((slot: slot) => {
       return slot.period === period && slot.showSlot;
     });
+    console.log({ currentlyAvailableSlots });
     return (
       <Grid
         item
-        //xs={12}
         sx={{
-          border: "1px solid",
           padding: "1rem 0rem",
           borderTop: "1px solid #ccc",
-          //border: "1px solid",
-          //minWidth: "400px",
-          //overflowX: "auto",
         }}
       >
         <Stack
@@ -345,11 +348,15 @@ const BoxCricket = () => {
                     padding: ".5rem",
                     cursor: "pointer",
                     border: slot.tempBooked ? "1px solid" : "0",
-                    backgroundColor: slot.tempBooked
-                      ? "rgb(249, 250, 251)"
+                    backgroundColor: slot.booked
+                      ? "#aaa"
+                      : slot.tempBooked
+                      ? "#ddd"
                       : "#fff",
                   }}
-                  onClick={() => handlSlotClick(slot.id, slot.tempBooked)}
+                  onClick={() =>
+                    handlSlotClick(slot.id, slot.tempBooked, slot.booked)
+                  }
                 >
                   <Typography
                     variant="body2"
@@ -377,7 +384,10 @@ const BoxCricket = () => {
                         {parseInt(slot.pricing) / 2}
                       </Typography>
                     </Stack>
-                    <Typography variant="body2">Available</Typography>
+
+                    <Typography variant="body2">
+                      {slot.booked ? "Booked" : "Available"}
+                    </Typography>
                   </Stack>
                 </Card>
               );
@@ -391,19 +401,20 @@ const BoxCricket = () => {
     );
   };
 
-  const handlSlotClick = (id: number, booked: boolean) => {
-    //console.log(booked)
-    const newBookedSlots = availableSlots.map((slot: slot) => {
-      if (slot.id === id) {
-        return {
-          ...slot,
-          tempBooked: !booked,
-        };
-      } else {
-        return slot;
-      }
-    });
-    setAvailableSlots(newBookedSlots);
+  const handlSlotClick = (id: number, tempBooked: boolean, booked: boolean) => {
+    if (!booked) {
+      const newBookedSlots = availableSlots.map((slot: slot) => {
+        if (slot.id === id) {
+          return {
+            ...slot,
+            tempBooked: !tempBooked,
+          };
+        } else {
+          return slot;
+        }
+      });
+      setAvailableSlots(newBookedSlots);
+    }
   };
 
   // const handleSelectedSlots = () => {
@@ -464,36 +475,62 @@ const BoxCricket = () => {
     setSelectedDate(date);
   };
 
+  //modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
+
   const handleSubmit = async () => {
     //console.log({ availableSlots });
-    const slot = availableSlots.filter((slot: slot) => slot.tempBooked);
-    //console.log({ slot });
-    if (!slot.length) {
+    setLoading(true);
+    const selectedSlots = availableSlots.filter(
+      (slot: slot) => slot.tempBooked
+    );
+
+    if (!selectedSlots.length) {
       setError("Please select atleast one slot to continue");
       message.info({
         content: "Select atleast one slot",
         duration: 3,
         style: { marginTop: "4rem" },
       });
-      //message.info("Select atleast one slot", duration: 3 });
+      setLoading(false);
       return;
     } else {
-      const date = selectedDate.format("DD/MM/YYYY");
-      const object1 = {
-        date,
-        slots: JSON.stringify(availableSlots),
-        boxCricketId: router.query.boxCricketId,
-      };
-      const response = await fetch("/api/bookings/updateBookingSlots", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(object1),
-      });
-      const result = await response.json();
-      console.log({ result });
+      let user = Cookies.get("currentUser");
+      let currentUser;
+      if (user) {
+        currentUser = JSON.parse(user);
+      }
+      if (currentUser?.userType === "user" && booking) {
+        const userBookings = {
+          userId: currentUser.id,
+          slotsBooked: selectedSlots,
+          boxCricketId: router.query.boxCricketId,
+          date: booking.date,
+          bookingId: booking.id,
+          slots: availableSlots,
+        };
+        localStorage.setItem("userBookings", JSON.stringify(userBookings));
+        router.push("/user/booking");
+      } else if (currentUser?.userType === "owner") {
+        //message.info("You need to be user to to the booking");
+        message.info({
+          content: "Please logout as owner to continue",
+          duration: 3,
+          style: { marginTop: "4rem" },
+        });
+      } else {
+        showModal();
+      }
     }
+    setLoading(false);
   };
 
   if (loading) {
@@ -560,7 +597,7 @@ const BoxCricket = () => {
               item
               xs={12}
               sm={9}
-              sx={{ border: "1px solid", backgroundColor: "#fff" }}
+              sx={{ border: "1px solid #ccc", backgroundColor: "#fff" }}
             >
               <Stack
                 gap={1}
@@ -572,30 +609,32 @@ const BoxCricket = () => {
                 >
                   {boxCricket?.boxCricketName}
                 </Typography>
-                <Stack>
-                  {/* <PlaceIcon /> */}
-                  <Typography>
-                    <b>Address</b>
-                  </Typography>
-                  <Typography>{boxCricket?.boxCricketAddress}</Typography>
-                </Stack>
-                <Stack direction={{ xs: "row" }} gap={4}>
+
+                <Stack gap={3}>
                   <Stack>
                     <Typography>
-                      <b>Free Facilities</b>
+                      <b>Address</b>
                     </Typography>
-                    <Typography>
-                      {boxCricket?.boxCricketFreeFacilities}
-                      {/* Bat, Stumps Bat, Stumps Bat, Stumps */}
-                    </Typography>
+                    <Typography>{boxCricket?.boxCricketAddress}</Typography>
                   </Stack>
-                  <Stack>
-                    <Typography>
-                      <b>Paid Facilities </b>
-                    </Typography>
-                    <Typography>
-                      {boxCricket?.boxCricketPaidFacilities}
-                    </Typography>
+                  <Stack direction={{ xs: "row" }} gap={4}>
+                    <Stack>
+                      <Typography>
+                        <b>Free Facilities</b>
+                      </Typography>
+                      <Typography>
+                        {boxCricket?.boxCricketFreeFacilities}
+                        {/* Bat, Stumps Bat, Stumps Bat, Stumps */}
+                      </Typography>
+                    </Stack>
+                    <Stack>
+                      <Typography>
+                        <b>Paid Facilities </b>
+                      </Typography>
+                      <Typography>
+                        {boxCricket?.boxCricketPaidFacilities}
+                      </Typography>
+                    </Stack>
                   </Stack>
                 </Stack>
               </Stack>
@@ -713,8 +752,8 @@ const BoxCricket = () => {
                   justifyContent: "flex-end",
                 }}
               >
-                <Button variant="outlined" onClick={handleSubmit}>
-                  Book and Pay
+                <Button variant="contained" onClick={handleSubmit}>
+                  Confirm Booking
                 </Button>
               </Card>
             </Grid>
@@ -745,6 +784,17 @@ const BoxCricket = () => {
             </Grid>
           </Grid>
         </StyledBox2> */}
+
+        <Modal
+          //title="Basic Modal"
+          open={isModalOpen}
+          //onOk={handleOk}
+          onCancel={handleCancel}
+          footer={null}
+          destroyOnClose={true}
+        >
+          <Signup pageType="signin" loginType="modal" />
+        </Modal>
       </Stack>
     </>
   );

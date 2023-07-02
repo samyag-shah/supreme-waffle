@@ -92,7 +92,6 @@ const SignupStep2 = ({ setSignupState, setStep, signupState }: props) => {
   const [previewImage, setPreviewImage] = React.useState("");
   const [previewTitle, setPreviewTitle] = React.useState("");
 
-  console.log({ signupState });
   //submit
   const onSubmit = async (data: FormData) => {
     if (signupState) {

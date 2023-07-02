@@ -13,6 +13,7 @@ import {
   Avatar,
   List,
   ListItem,
+  Stack,
   ListItemText,
 } from "@mui/material";
 
@@ -123,36 +124,35 @@ const Header = () => {
         )}
 
         {user === "user" && (
-          <Box sx={{ display: { xs: "none", sm: "block" } }}>
-            <Link
-              href="/"
+          <Stack
+            direction="row"
+            alignItems="center"
+            sx={{ display: { xs: "none", sm: "flex" } }}
+          >
+            <Typography
               style={{
+                cursor: "pointer",
                 textDecoration: "none",
                 padding: "0 1rem",
                 color: "#000",
               }}
+              component="div"
+              onClick={(e) => handleNotificationClick(e)}
             >
               My Bookings
-            </Link>
-            <Box
-              style={{
-                textDecoration: "none",
-                padding: "0 1rem",
-                color: "#000",
+            </Typography>
+
+            <Avatar
+              sx={{
+                cursor: "pointer",
+                width: "30px",
+                height: "30px",
               }}
+              onClick={(e) => handleProfileClick(e)}
             >
-              Notification
-            </Box>
-            <Box
-              style={{
-                textDecoration: "none",
-                padding: "0 1rem",
-                color: "#000",
-              }}
-            >
-              Profile
-            </Box>
-          </Box>
+              H
+            </Avatar>
+          </Stack>
         )}
 
         {user === "owner" && (
@@ -268,7 +268,9 @@ const Header = () => {
                   },
                 }}
               >
-                <ListItemText> Edit Profile </ListItemText>
+                <ListItemText>
+                  <Link href="/owner/profile"> Edit Profile </Link>
+                </ListItemText>
               </ListItem>
               <ListItem
                 sx={{

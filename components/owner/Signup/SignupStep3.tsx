@@ -1,5 +1,5 @@
 //react-nextjs
-import React, { useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/router";
 
 //mui
@@ -450,7 +450,6 @@ const SignupStep3 = ({ signupState }: props) => {
       };
     }
 
-    console.log({ newState });
     let fd = new FormData();
     for (let key in newState) {
       if (key === "boxCricketImages") {
@@ -552,7 +551,6 @@ const SignupStep3 = ({ signupState }: props) => {
     return arr;
   };
 
-  //console.log({ signupState });
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>

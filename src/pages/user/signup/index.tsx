@@ -22,11 +22,18 @@ export interface user1 {
   email?: string | null;
 }
 
-const Signup = ({ pageType = "signup" }: { pageType: string }) => {
+const Signup = ({
+  pageType = "signup",
+  loginType = "page",
+}: {
+  pageType: string;
+  loginType: string;
+}) => {
   const [promise, setPromise] = useState<ConfirmationResult>();
   const [captcha, setCaptcha] = useState<RecaptchaVerifier>();
 
   const [page, setPage] = useState(1);
+  const [pageType1, setPageType] = useState(pageType);
   const [signupState, setSignupState] = useState<signupType>({
     username: null,
     phone: null,
@@ -85,6 +92,7 @@ const Signup = ({ pageType = "signup" }: { pageType: string }) => {
     }
   };
 
+  //console.log({ pageType1, loginType });
   return (
     <>
       <Head>
@@ -92,18 +100,26 @@ const Signup = ({ pageType = "signup" }: { pageType: string }) => {
       </Head>
 
       <div id="sign-in-button"></div>
-      <Box sx={styles.containerWrapper}>
+      <Box sx={loginType === "page" ? styles.containerWrapper : {}}>
         <Container
           disableGutters
           maxWidth="xs"
-          sx={{ minWidth: "350px", overflowX: "auto" }}
+          sx={{
+            minWidth: "350px",
+            overflowX: "auto",
+          }}
         >
-          <Card sx={{ px: "2rem", py: "1rem" }}>
+          <Card
+            sx={{
+              px: "2rem",
+              py: "1rem",
+            }}
+          >
             {page === 1 && (
               <>
                 <Box sx={styles.textContainer}>
                   <Typography variant="h5" sx={{ mb: "2rem" }}>
-                    {pageType === "signin" ? "Signin" : "Signup"}
+                    {pageType1 === "signin" ? "Signin" : "Signup"}
                     <Divider />
                   </Typography>
 
@@ -127,26 +143,30 @@ const Signup = ({ pageType = "signup" }: { pageType: string }) => {
               </>
             )}
 
-            {page === 1 && pageType === "signup" && (
+            {page === 1 && pageType1 === "signup" && (
               <MainSignUp
+                loginType={loginType}
                 page={page}
                 setPage={setPage}
                 signupState={signupState}
                 setSignupState={setSignupState}
                 setPromise={setPromise}
-                pageType={pageType}
+                pageType={pageType1}
+                setPageType={setPageType}
                 setCaptcha={setCaptcha}
                 captcha={captcha}
               />
             )}
 
-            {page === 1 && pageType === "signin" && (
+            {page === 1 && pageType1 === "signin" && (
               <MainSignIn
                 setPage={setPage}
                 signupState={signupState}
                 setSignupState={setSignupState}
                 setPromise={setPromise}
-                pageType={pageType}
+                pageType={pageType1}
+                setPageType={setPageType}
+                loginType={loginType}
                 setCaptcha={setCaptcha}
                 captcha={captcha}
               />
@@ -157,9 +177,10 @@ const Signup = ({ pageType = "signup" }: { pageType: string }) => {
                 signupState={signupState}
                 promise={promise}
                 setPage={setPage}
-                pageType={pageType}
+                pageType={pageType1}
                 setPromise={setPromise}
                 captcha={captcha}
+                loginType={loginType}
               />
             )}
           </Card>
