@@ -6,7 +6,6 @@ import { PrismaClient } from "@prisma/client";
 import { Upload } from "@aws-sdk/lib-storage";
 
 import multer from "multer";
-import jwt from "jsonwebtoken";
 import { body, validationResult } from "express-validator";
 
 const { S3Client } = require("@aws-sdk/client-s3");
@@ -38,11 +37,8 @@ const upload = multer({ storage }).array("files");
 router.use(upload as any);
 
 router.use(async (req, res, next) => {
-  //console.log({boxCricketId: req.query.boxCricketId})
   const validations = [
-    body("ownerName").trim().notEmpty().withMessage("ownerName is required"),
-    body("ownerEmail").trim().notEmpty().withMessage("ownerEmail is required"),
-    body("ownerPhone").trim().notEmpty().withMessage("ownerPhone is required"),
+    body("ownerId").trim().notEmpty().withMessage("ownerId is required"),
     body("boxCricketName")
       .trim()
       .notEmpty()
@@ -101,9 +97,6 @@ router.use(async (req, res, next) => {
 
 router.post(async (req, res) => {
   const {
-    ownerName,
-    ownerEmail,
-    ownerPhone,
     boxCricketName,
     boxCricketAddress,
     boxCricketState,
@@ -115,78 +108,56 @@ router.post(async (req, res) => {
     bookingSlots,
     minSlotPrice,
     maxSlotPrice,
+    ownerId,
   } = req.body;
 
   try {
-    const owner = await prisma.owner.findFirst({
-      where: {
-        ownerPhone,
-      },
-    });
-    if (owner) {
-      res.json({ status: 200, message: "owner already exists" });
-    } else {
-      const boxCricketImages1: any[] = [];
+    const boxCricketImages1: any[] = [];
 
-      req.files.map(async (file, index) => {
-        const buffer = file.buffer;
-        const stream = Readable.from(buffer);
+    req.files.map(async (file, index) => {
+      const buffer = file.buffer;
+      const stream = Readable.from(buffer);
 
-        let extenstion = file.mimetype.split("/")[1];
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        const fileName = file.fieldname + "-" + uniqueSuffix + "." + extenstion;
+      let extenstion = file.mimetype.split("/")[1];
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const fileName = file.fieldname + "-" + uniqueSuffix + "." + extenstion;
 
-        const upload = new Upload({
-          client: client,
-          params: {
-            Bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
-            Key: fileName,
-            Body: stream,
-            ContentType: "text/plain",
+      const upload = new Upload({
+        client: client,
+        params: {
+          Bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
+          Key: fileName,
+          Body: stream,
+          ContentType: "text/plain",
+        },
+      });
+
+      await upload.done();
+      boxCricketImages1.push(process.env.S3_ACCESS_URL + fileName);
+      if (index === req.files.map.length - 1) {
+        //db create
+        const newBoxCricket = await prisma.boxcricket.create({
+          data: {
+            ownerId,
+            boxCricketName,
+            boxCricketAddress,
+            boxCricketState,
+            boxCricketCity,
+            boxCricketArea,
+            boxCricketLandmark,
+            minSlotPrice: parseInt(minSlotPrice),
+            maxSlotPrice: parseInt(maxSlotPrice),
+            boxCricketFreeFacilities,
+            boxCricketPaidFacilities,
+            boxCricketImages: boxCricketImages1,
+            bookingSlots: JSON.parse(bookingSlots),
           },
         });
 
-        await upload.done();
-        boxCricketImages1.push(process.env.S3_ACCESS_URL + fileName);
-        if (index === req.files.map.length - 1) {
-          //db create
-          const newOwner = await prisma.owner.create({
-            data: {
-              ownerName,
-              ownerEmail,
-              ownerPhone,
-              Boxcrickets: {
-                create: [
-                  {
-                    boxCricketName,
-                    boxCricketAddress,
-                    boxCricketState,
-                    boxCricketCity,
-                    boxCricketArea,
-                    boxCricketLandmark,
-                    minSlotPrice: parseInt(minSlotPrice),
-                    maxSlotPrice: parseInt(maxSlotPrice),
-                    boxCricketFreeFacilities,
-                    boxCricketPaidFacilities,
-                    boxCricketImages: boxCricketImages1,
-                    bookingSlots: JSON.parse(bookingSlots),
-                  },
-                ],
-              },
-            },
-          });
-
-          //create Token
-          const payload = {
-            ownerPhone,
-            ownerId: newOwner.id,
-            exp: Date.now() / 1000 + 24 * 60 * 60,
-          };
-          const token = jwt.sign(payload, process.env.JWT_SECRET_KEY || "");
-          return res.json({ status: 201, newOwner, token });
-        }
-      });
-    }
+        return res.json({ status: 201, newBoxCricket });
+      }
+    });
+    //return res.json({ status: 500, message: "something went wrong" });
   } catch (err: unknown) {
     console.error({ err });
     return res

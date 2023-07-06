@@ -1,5 +1,5 @@
 //react-nextjs
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 
 //mui
@@ -21,366 +21,22 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
-import { styles } from "./styles";
 import { Spin, message } from "antd";
 
 import SendIcon from "@mui/icons-material/Send";
 import { SignupState } from "@/pages/owner/signup";
 import Cookies from "js-cookie";
 
+import { slots1 } from "./slotData";
+
+//dayjs
 import dayjs from "dayjs";
 import objectSupport from "dayjs/plugin/objectSupport";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(objectSupport);
 dayjs.extend(utc);
 
-const slots1 = [
-  {
-    id: 0,
-    startTime: "2023-06-18T18:30:00Z",
-    endTime: "2023-06-18T19:00:00Z",
-    selected: true,
-    period: "lateNight",
-  },
-  {
-    id: 1,
-    startTime: "2023-06-18T19:00:00Z",
-    endTime: "2023-06-18T19:30:00Z",
-    selected: true,
-    period: "lateNight",
-  },
-  {
-    id: 2,
-    startTime: "2023-06-18T19:30:00Z",
-    endTime: "2023-06-18T20:00:00Z",
-    selected: true,
-    period: "lateNight",
-  },
-  {
-    id: 3,
-    startTime: "2023-06-18T20:00:00Z",
-    endTime: "2023-06-18T20:30:00Z",
-    selected: true,
-    period: "lateNight",
-  },
-  {
-    id: 4,
-    startTime: "2023-06-18T20:30:00Z",
-    endTime: "2023-06-18T21:00:00Z",
-    selected: true,
-    period: "lateNight",
-  },
-  {
-    id: 5,
-    startTime: "2023-06-18T21:00:00Z",
-    endTime: "2023-06-18T21:30:00Z",
-    selected: true,
-    period: "lateNight",
-  },
-  {
-    id: 6,
-    startTime: "2023-06-18T21:30:00Z",
-    endTime: "2023-06-18T22:00:00Z",
-    selected: true,
-    period: "lateNight",
-  },
-  {
-    id: 7,
-    startTime: "2023-06-18T22:00:00Z",
-    endTime: "2023-06-18T22:30:00Z",
-    selected: true,
-    period: "lateNight",
-  },
-  {
-    id: 8,
-    startTime: "2023-06-18T22:30:00Z",
-    endTime: "2023-06-18T23:00:00Z",
-    selected: true,
-    period: "lateNight",
-  },
-  {
-    id: 9,
-    startTime: "2023-06-18T23:00:00Z",
-    endTime: "2023-06-18T23:30:00Z",
-    selected: true,
-    period: "lateNight",
-  },
-  {
-    id: 10,
-    startTime: "2023-06-18T23:30:00Z",
-    endTime: "2023-06-19T00:00:00Z",
-    selected: true,
-    period: "lateNight",
-  },
-  {
-    id: 11,
-    startTime: "2023-06-19T00:00:00Z",
-    endTime: "2023-06-19T00:30:00Z",
-    selected: true,
-    period: "lateNight",
-  },
-  {
-    id: 12,
-    startTime: "2023-06-19T00:30:00Z",
-    endTime: "2023-06-19T01:00:00Z",
-    selected: true,
-    period: "morning",
-  },
-  {
-    id: 13,
-    startTime: "2023-06-19T01:00:00Z",
-    endTime: "2023-06-19T01:30:00Z",
-    selected: true,
-    period: "morning",
-  },
-  {
-    id: 14,
-    startTime: "2023-06-19T01:30:00Z",
-    endTime: "2023-06-19T02:00:00Z",
-    selected: true,
-    period: "morning",
-  },
-  {
-    id: 15,
-    startTime: "2023-06-19T02:00:00Z",
-    endTime: "2023-06-19T02:30:00Z",
-    selected: true,
-    period: "morning",
-  },
-  {
-    id: 16,
-    startTime: "2023-06-19T02:30:00Z",
-    endTime: "2023-06-19T03:00:00Z",
-    selected: true,
-    period: "morning",
-  },
-  {
-    id: 17,
-    startTime: "2023-06-19T03:00:00Z",
-    endTime: "2023-06-19T03:30:00Z",
-    selected: true,
-    period: "morning",
-  },
-  {
-    id: 18,
-    startTime: "2023-06-19T03:30:00Z",
-    endTime: "2023-06-19T04:00:00Z",
-    selected: true,
-    period: "morning",
-  },
-  {
-    id: 19,
-    startTime: "2023-06-19T04:00:00Z",
-    endTime: "2023-06-19T04:30:00Z",
-    selected: true,
-    period: "morning",
-  },
-  {
-    id: 20,
-    startTime: "2023-06-19T04:30:00Z",
-    endTime: "2023-06-19T05:00:00Z",
-    selected: true,
-    period: "morning",
-  },
-  {
-    id: 21,
-    startTime: "2023-06-19T05:00:00Z",
-    endTime: "2023-06-19T05:30:00Z",
-    selected: true,
-    period: "morning",
-  },
-  {
-    id: 22,
-    startTime: "2023-06-19T05:30:00Z",
-    endTime: "2023-06-19T06:00:00Z",
-    selected: true,
-    period: "morning",
-  },
-  {
-    id: 23,
-    startTime: "2023-06-19T06:00:00Z",
-    endTime: "2023-06-19T06:30:00Z",
-    selected: true,
-    period: "morning",
-  },
-  {
-    id: 24,
-    startTime: "2023-06-19T06:30:00Z",
-    endTime: "2023-06-19T07:00:00Z",
-    selected: true,
-    period: "afternoon",
-  },
-  {
-    id: 25,
-    startTime: "2023-06-19T07:00:00Z",
-    endTime: "2023-06-19T07:30:00Z",
-    selected: true,
-    period: "afternoon",
-  },
-  {
-    id: 26,
-    startTime: "2023-06-19T07:30:00Z",
-    endTime: "2023-06-19T08:00:00Z",
-    selected: true,
-    period: "afternoon",
-  },
-  {
-    id: 27,
-    startTime: "2023-06-19T08:00:00Z",
-    endTime: "2023-06-19T08:30:00Z",
-    selected: true,
-    period: "afternoon",
-  },
-  {
-    id: 28,
-    startTime: "2023-06-19T08:30:00Z",
-    endTime: "2023-06-19T09:00:00Z",
-    selected: true,
-    period: "afternoon",
-  },
-  {
-    id: 29,
-    startTime: "2023-06-19T09:00:00Z",
-    endTime: "2023-06-19T09:30:00Z",
-    selected: true,
-    period: "afternoon",
-  },
-  {
-    id: 30,
-    startTime: "2023-06-19T09:30:00Z",
-    endTime: "2023-06-19T10:00:00Z",
-    selected: true,
-    period: "afternoon",
-  },
-  {
-    id: 31,
-    startTime: "2023-06-19T10:00:00Z",
-    endTime: "2023-06-19T10:30:00Z",
-    selected: true,
-    period: "afternoon",
-  },
-  {
-    id: 32,
-    startTime: "2023-06-19T10:30:00Z",
-    endTime: "2023-06-19T11:00:00Z",
-    selected: true,
-    period: "afternoon",
-  },
-  {
-    id: 33,
-    startTime: "2023-06-19T11:00:00Z",
-    endTime: "2023-06-19T11:30:00Z",
-    selected: true,
-    period: "afternoon",
-  },
-  {
-    id: 34,
-    startTime: "2023-06-19T11:30:00Z",
-    endTime: "2023-06-19T12:00:00Z",
-    selected: true,
-    period: "afternoon",
-  },
-  {
-    id: 35,
-    startTime: "2023-06-19T12:00:00Z",
-    endTime: "2023-06-19T12:30:00Z",
-    selected: true,
-    period: "afternoon",
-  },
-  {
-    id: 36,
-    startTime: "2023-06-19T12:30:00Z",
-    endTime: "2023-06-19T13:00:00Z",
-    selected: true,
-    period: "night",
-  },
-  {
-    id: 37,
-    startTime: "2023-06-19T13:00:00Z",
-    endTime: "2023-06-19T13:30:00Z",
-    selected: true,
-    period: "night",
-  },
-  {
-    id: 38,
-    startTime: "2023-06-19T13:30:00Z",
-    endTime: "2023-06-19T14:00:00Z",
-    selected: true,
-    period: "night",
-  },
-  {
-    id: 39,
-    startTime: "2023-06-19T14:00:00Z",
-    endTime: "2023-06-19T14:30:00Z",
-    selected: true,
-    period: "night",
-  },
-  {
-    id: 40,
-    startTime: "2023-06-19T14:30:00Z",
-    endTime: "2023-06-19T15:00:00Z",
-    selected: true,
-    period: "night",
-  },
-  {
-    id: 41,
-    startTime: "2023-06-19T15:00:00Z",
-    endTime: "2023-06-19T15:30:00Z",
-    selected: true,
-    period: "night",
-  },
-  {
-    id: 42,
-    startTime: "2023-06-19T15:30:00Z",
-    endTime: "2023-06-19T16:00:00Z",
-    selected: true,
-    period: "night",
-  },
-  {
-    id: 43,
-    startTime: "2023-06-19T16:00:00Z",
-    endTime: "2023-06-19T16:30:00Z",
-    selected: true,
-    period: "night",
-  },
-  {
-    id: 44,
-    startTime: "2023-06-19T16:30:00Z",
-    endTime: "2023-06-19T17:00:00Z",
-    selected: true,
-    period: "night",
-  },
-  {
-    id: 45,
-    startTime: "2023-06-19T17:00:00Z",
-    endTime: "2023-06-19T17:30:00Z",
-    selected: true,
-    period: "night",
-  },
-  {
-    id: 46,
-    startTime: "2023-06-19T17:30:00Z",
-    endTime: "2023-06-19T18:00:00Z",
-    selected: true,
-    period: "night",
-  },
-  {
-    id: 47,
-    startTime: "2023-06-19T18:00:00Z",
-    endTime: "2023-06-18T18:30:00Z",
-    selected: true,
-    period: "night",
-  },
-];
-
-interface slot {
-  id: number;
-  startTime: string;
-  endTime: string;
-  selected: boolean;
-  period: string;
-}
-
+//yup
 const schema = yup
   .object({
     night: yup
@@ -403,14 +59,38 @@ const schema = yup
   .required();
 type FormData = yup.InferType<typeof schema>;
 
-interface props {
-  signupState: SignupState | undefined;
+interface slot {
+  id: number;
+  startTime: string;
+  endTime: string;
+  selected: boolean;
+  period: string;
+  pricing: string;
 }
 
-const SignupStep3 = ({ signupState }: props) => {
+interface props {
+  signupState?: SignupState | undefined;
+  owner?: any;
+  operationType?: "update" | "new";
+  boxCricektState?: any;
+  boxCricketId?: string;
+}
+
+interface BoxCricket {
+  bookingSlots: any[];
+}
+
+const BoxCricketSlot = ({
+  boxCricektState,
+  operationType,
+  owner,
+  signupState,
+  boxCricketId,
+}: props) => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
@@ -420,14 +100,43 @@ const SignupStep3 = ({ signupState }: props) => {
   const [loading, setLoading] = React.useState(false);
   const [slots, setSlots] = React.useState<slot[]>(slots1);
 
+  //update slot data and pricing
+  useEffect(() => {
+    if (owner && operationType === "update" && boxCricketId) {
+      let boxCricket: BoxCricket = owner?.Boxcrickets?.find(
+        (box: any) => box.id === boxCricketId
+      );
+
+      setSlots(boxCricket.bookingSlots);
+      let obj = {
+        night: "",
+        lateNight: "",
+        morning: "",
+        afternoon: "",
+      };
+      boxCricket.bookingSlots.map((data: slot) => {
+        if (data.period === "night") {
+          obj[data.period as keyof typeof obj] = data.pricing;
+        } else if (data.period === "lateNight") {
+          obj[data.period as keyof typeof obj] = data.pricing;
+        } else if (data.period === "morning") {
+          obj[data.period as keyof typeof obj] = data.pricing;
+        } else if (data.period === "afternoon") {
+          obj[data.period as keyof typeof obj] = data.pricing;
+        }
+      });
+      setValue("night", obj.night);
+      setValue("lateNight", obj.lateNight);
+      setValue("morning", obj.morning);
+      setValue("afternoon", obj.afternoon);
+    }
+  }, [owner, boxCricketId]);
+
   const onSubmit = async (data: FormData) => {
     //console.log({ data });
-
     let newSlots;
-    //remove unselected slots
-    newSlots = slots.filter((slot) => slot.selected !== false);
     //add pricing
-    newSlots = newSlots.map((slot) => {
+    newSlots = slots.map((slot) => {
       return {
         ...slot,
         pricing: data[slot.period as keyof typeof data],
@@ -448,6 +157,14 @@ const SignupStep3 = ({ signupState }: props) => {
         minSlotPrice,
         maxSlotPrice,
       };
+    } else if (boxCricektState) {
+      newState = {
+        ...boxCricektState,
+        bookingSlots: newSlots,
+        minSlotPrice,
+        maxSlotPrice,
+        ownerId: owner.id,
+      };
     }
 
     let fd = new FormData();
@@ -457,38 +174,86 @@ const SignupStep3 = ({ signupState }: props) => {
           signupState.boxCricketImages.map((image) => {
             fd.append("files", image.originFileObj);
           });
+        } else {
+          boxCricektState.boxCricketImages.map((image: any) => {
+            fd.append("files", image.originFileObj);
+          });
         }
       } else if (key === "bookingSlots") {
         fd.append(key, JSON.stringify(newState[key as keyof typeof newState]));
       } else if (key !== "boxCricketImages") {
-        //if(){
         fd.append(key, newState[key as keyof typeof newState] as string);
-        //}
       }
     }
 
     try {
-      setLoading(true);
-      const response = await fetch("/api/owner/registerNewOwner", {
-        method: "POST",
-        body: fd,
-      });
-      const result = await response.json();
-      if (result.status === 201) {
-        const currentUser = {
-          userType: "owner",
-          name: result.newOwner.ownerName,
-          phone: result.newOwner.ownerPhone,
-          id: result.newOwner.id,
-        };
-        Cookies.set("currentUser", JSON.stringify(currentUser), { expires: 1 });
-        Cookies.set("token", result.token);
-        message.success("User added");
-        router.push("/owner");
+      if (!owner) {
+        setLoading(true);
+        const response = await fetch("/api/owner/registerNewOwner", {
+          method: "POST",
+          body: fd,
+        });
+        const result = await response.json();
+        if (result.status === 201) {
+          const currentUser = {
+            userType: "owner",
+            name: result.newOwner.ownerName,
+            phone: result.newOwner.ownerPhone,
+            id: result.newOwner.id,
+          };
+          Cookies.set("currentUser", JSON.stringify(currentUser), {
+            expires: 1,
+          });
+          Cookies.set("token", result.token);
+          message.success("User added");
+          router.push("/owner");
+        } else {
+          message.info("something went wrong");
+        }
+        setLoading(false);
+      } else if (owner && operationType === "update") {
+        //update slots
+        const result = await fetch("/api/owner/updateBoxCricketDetails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            boxCricketId: owner?.Boxcrickets?.[0].id,
+            bookingSlots: JSON.stringify(newSlots),
+          }),
+        });
+        const response = await result.json();
+        if (response.status === 200) {
+          message.success({
+            content: "Successfully updated",
+            style: { marginTop: "5rem" },
+          });
+        } else {
+          message.success({
+            content: "Please try again",
+            style: { marginTop: "5rem" },
+          });
+        }
       } else {
-        message.info("something went wrong");
+        //create new boxCricket
+        const result = await fetch("/api/owner/createNewBoxCricket", {
+          method: "POST",
+          body: fd,
+        });
+        const response = await result.json();
+        if (response.status === 201) {
+          message.success({
+            content: "Successfully created",
+            style: { marginTop: "5rem" },
+          });
+        } else {
+          message.success({
+            content: "Please try again",
+            style: { marginTop: "5rem" },
+          });
+        }
       }
-      setLoading(false);
     } catch (err) {
       console.error(err);
       setLoading(false);
@@ -514,7 +279,7 @@ const SignupStep3 = ({ signupState }: props) => {
         <Grid item xs={6} sm={4}>
           <Card
             onClick={(e) => handleSlotClick(e, slot.id)}
-            sx={slot.selected ? styles.selectedCard : styles.card}
+            //sx={slot.selected ? styles.selectedCard : styles.card}
           >
             <CardActionArea>
               <CardContent sx={{ px: 1, py: 2 }}>
@@ -556,14 +321,14 @@ const SignupStep3 = ({ signupState }: props) => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Typography sx={styles.workingHoursTitle}>
-              Select working hours
+            <Typography sx={{ mb: 1 }} fontWeight={600} variant="body1">
+              BoxCricket Working hours
             </Typography>
-            <Typography sx={styles.workingHoursSubtitle}>
-              {`"Please uncheck slots during which you do not wish to recieve
-              bookings"`}
+            <Typography>
+              {`Please uncheck slots during which you do not wish to recieve
+              bookings`}
             </Typography>
-            <Divider sx={styles.divider1} />
+            <Divider sx={{ mt: 1 }} />
           </Grid>
 
           {/* night     */}
@@ -585,6 +350,7 @@ const SignupStep3 = ({ signupState }: props) => {
 
               <Input
                 type="tel"
+                sx={{ width: "170px" }}
                 {...register("night")}
                 helperText={errors?.night?.message}
                 error={errors?.night?.message ? true : false}
@@ -611,7 +377,7 @@ const SignupStep3 = ({ signupState }: props) => {
                 Late Night (12:00 to 6:00AM)
               </Typography>
               <Input
-                //fullWidth
+                sx={{ width: "170px" }}
                 type="tel"
                 {...register("lateNight")}
                 helperText={errors?.lateNight?.message}
@@ -639,6 +405,7 @@ const SignupStep3 = ({ signupState }: props) => {
                 Morning (6:00 to 12:00AM)
               </Typography>
               <Input
+                sx={{ width: "170px" }}
                 type="tel"
                 {...register("morning")}
                 helperText={errors?.morning?.message}
@@ -666,6 +433,7 @@ const SignupStep3 = ({ signupState }: props) => {
                 Afternoon (12:00 to 6:00PM)
               </Typography>
               <Input
+                sx={{ width: "170px" }}
                 type="tel"
                 //disabled={otpMessage === "" ? true : false}
                 {...register("afternoon")}
@@ -684,9 +452,19 @@ const SignupStep3 = ({ signupState }: props) => {
             variant="contained"
             type="submit"
             disabled={loading}
-            endIcon={<SendIcon />}
+            //endIcon={<SendIcon />}
           >
-            {loading ? <Spin /> : "Signup"}
+            {loading ? (
+              <Spin />
+            ) : owner ? (
+              operationType === "new" ? (
+                "Create"
+              ) : (
+                "Update"
+              )
+            ) : (
+              "Signup"
+            )}
           </CommonButton>
         </Box>
       </form>
@@ -694,4 +472,4 @@ const SignupStep3 = ({ signupState }: props) => {
   );
 };
 
-export default SignupStep3;
+export default BoxCricketSlot;

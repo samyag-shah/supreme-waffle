@@ -2,12 +2,19 @@ import React, { useState, Dispatch, SetStateAction, useEffect } from "react";
 import Link1 from "next/link";
 
 //mui
-import { Box, Typography, Grid, InputAdornment, Link } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Grid,
+  InputAdornment,
+  Link,
+  TextField,
+} from "@mui/material";
 import Input from "../../common/Input/Input";
 import CommonButton from "../../common/Button/CommonButton";
 
 //react-hooks-form
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
@@ -21,6 +28,7 @@ import {
 } from "../../../config/firebase/firebase";
 import { ConfirmationResult } from "firebase/auth";
 
+//dayjs
 import dayjs from "dayjs";
 import objectSupport from "dayjs/plugin/objectSupport";
 import utc from "dayjs/plugin/utc";
@@ -31,7 +39,7 @@ interface props {
   setStep?: Dispatch<SetStateAction<number>>;
   setSignupState?: Dispatch<SetStateAction<SignupState | undefined>>;
   signupState?: SignupState | undefined;
-  owner?: FormData | undefined;
+  owner?: FormData1 | undefined;
 }
 
 const schema = yup
@@ -55,6 +63,7 @@ type FormData = yup.InferType<typeof schema>;
 
 interface FormData1 extends FormData {
   otp: string;
+  id: string;
 }
 
 const OwnerInfo = ({ owner, setStep, setSignupState, signupState }: props) => {
@@ -62,6 +71,7 @@ const OwnerInfo = ({ owner, setStep, setSignupState, signupState }: props) => {
     register,
     handleSubmit,
     setValue,
+    control,
     clearErrors,
     setError,
     formState: { errors },
@@ -70,67 +80,20 @@ const OwnerInfo = ({ owner, setStep, setSignupState, signupState }: props) => {
     defaultValues: { otp: "", ownerName: "", ownerPhone: "", ownerEmail: "" },
   });
 
-  useEffect(() => {
-    if (owner) {
-      console.log({ owner });
-      setValue("ownerName", owner.ownerName);
-      setValue("ownerPhone", owner.ownerPhone);
-      setValue("ownerEmail", owner.ownerEmail);
-    }
-  }, [owner]);
-
-  // useEffect(() => {
-  //   const calculatePeriod = (id: number) => {
-  //     console.log({ id });
-  //     if (id >= 1 && id <= 12) {
-  //       return "lateNight";
-  //     } else if (id >= 13 && id <= 24) {
-  //       return "morning";
-  //     } else if (id >= 25 && id <= 36) {
-  //       return "afternoon";
-  //     } else {
-  //       return "night";
-  //     }
-  //   };
-  //   const slots = [];
-  //   let count = 0;
-  //   for (let i = 0; i <= 23; i++) {
-  //     let obj1 = {
-  //       id: count++,
-  //       startTime: dayjs({ hour: i, minute: 0 }).utc().format(),
-  //       endTime: dayjs({ hour: i, minute: 30 }).utc().format(),
-  //       selected: true,
-  //       period: calculatePeriod(count),
-  //     };
-  //     let obj2 = {
-  //       id: count++,
-  //       startTime: dayjs({ hour: i, minute: 30 }).utc().format(),
-  //       endTime: dayjs({ hour: i + 1 === 24 ? 0 : i + 1, minute: 0 })
-  //         .utc()
-  //         .format(),
-  //       selected: true,
-  //       period: calculatePeriod(count),
-  //     };
-  //     slots.push(obj1, obj2);
-  //   }
-
-  //   console.log({ slots });
-  //   console.log({
-  //     slots: slots.map((slot: any) => {
-  //       return {
-  //         ...slot,
-  //         startTime: dayjs(slot.startTime).local().format("hh:mm A"),
-  //         endTime: dayjs(slot.endTime).local().format("hh:mm A"),
-  //       };
-  //     }),
-  //   });
-  // }, []);
-
   const [loading, setLoading] = useState(false);
   const [otpMessage, setOtpMessage] = useState("");
   const [edit, setEdit] = useState(false);
 
   const [promise, setPromise] = useState<ConfirmationResult>();
+
+  //updating owner Data if available
+  useEffect(() => {
+    if (owner) {
+      setValue("ownerName", owner.ownerName);
+      setValue("ownerPhone", owner.ownerPhone);
+      setValue("ownerEmail", owner.ownerEmail);
+    }
+  }, [owner]);
 
   const verifyUserAndSendOtp = async (data: FormData1) => {
     //check if number is already registered
@@ -176,6 +139,32 @@ const OwnerInfo = ({ owner, setStep, setSignupState, signupState }: props) => {
       if (setStep && setSignupState) {
         setStep(1);
         setSignupState({ ...data });
+      } else {
+        //update Owner Info
+        const result = await fetch("/api/owner/updateOwnerDetails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ownerPhone: data?.ownerPhone,
+            ownerName: data?.ownerName,
+            ownerEmail: data?.ownerEmail,
+            ownerId: owner?.id,
+          }),
+        });
+        const response = await result.json();
+        if (response.status === 200) {
+          message.success({
+            content: "Successfully updated",
+            style: { marginTop: "5rem" },
+          });
+        } else {
+          message.success({
+            content: "Please try again",
+            style: { marginTop: "5rem" },
+          });
+        }
       }
       setLoading(false);
     } catch (err) {
@@ -208,55 +197,77 @@ const OwnerInfo = ({ owner, setStep, setSignupState, signupState }: props) => {
     clearErrors("otp");
   };
 
-  console.log({ owner });
   return (
     <form>
       <div id="sign-in-button"></div>
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Input
-            label="Owner name"
-            fullWidth
-            type="text"
-            {...register("ownerName")}
-            helperText={errors?.ownerName?.message}
-            error={errors?.ownerName?.message ? true : false}
+          <Controller
+            name="ownerName"
+            control={control}
+            rules={{ required: true }}
+            render={({ field }) => (
+              <TextField
+                label="Owner name"
+                fullWidth
+                {...field}
+                size="small"
+                helperText={errors?.ownerName?.message}
+                error={errors?.ownerName?.message ? true : false}
+              />
+            )}
           />
         </Grid>
 
         <Grid item xs={12}>
-          <Input
-            label="Owner Email"
-            fullWidth
-            type="email"
-            {...register("ownerEmail")}
-            helperText={errors?.ownerEmail?.message}
-            error={errors?.ownerEmail?.message ? true : false}
+          <Controller
+            name="ownerEmail"
+            control={control}
+            rules={{ required: true }}
+            render={({ field }) => (
+              <TextField
+                label="Owner Email"
+                fullWidth
+                type="email"
+                helperText={errors?.ownerEmail?.message}
+                error={errors?.ownerEmail?.message ? true : false}
+                {...field}
+                size="small"
+              />
+            )}
           />
         </Grid>
 
         <Grid item xs={12}>
-          <Input
-            label="Owner Phone number"
-            fullWidth
-            type="tel"
-            disabled={edit}
-            {...register("ownerPhone")}
-            helperText={errors?.ownerPhone?.message}
-            error={errors?.ownerPhone?.message ? true : false}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="start">
-                  <Link sx={{ cursor: "pointer" }}>
-                    {edit ? (
-                      <p onClick={handleEdit}>Edit</p>
-                    ) : (
-                      <p onClick={handleSubmit(onSubmit)}>Verify</p>
-                    )}
-                  </Link>
-                </InputAdornment>
-              ),
-            }}
+          <Controller
+            name="ownerPhone"
+            control={control}
+            rules={{ required: true }}
+            render={({ field }) => (
+              <TextField
+                label="Owner Phone number"
+                fullWidth
+                type="tel"
+                disabled={edit}
+                {...field}
+                size="small"
+                helperText={errors?.ownerPhone?.message}
+                error={errors?.ownerPhone?.message ? true : false}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="start">
+                      <Link sx={{ cursor: "pointer" }}>
+                        {edit ? (
+                          <p onClick={handleEdit}>Edit</p>
+                        ) : (
+                          <p onClick={handleSubmit(onSubmit)}>Verify</p>
+                        )}
+                      </Link>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            )}
           />
         </Grid>
 
@@ -282,7 +293,7 @@ const OwnerInfo = ({ owner, setStep, setSignupState, signupState }: props) => {
         sx={{
           my: "2rem",
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: owner ? "flex-end" : "space-between",
           alignItems: "center",
           flexWrap: "wrap",
         }}

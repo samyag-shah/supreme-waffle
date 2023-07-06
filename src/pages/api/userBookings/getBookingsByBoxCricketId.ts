@@ -1,17 +1,19 @@
 import { PrismaClient } from "@prisma/client";
-import { query, validationResult } from "express-validator";
+import { body, validationResult } from "express-validator";
 import { NextApiRequest, NextApiResponse } from "next";
 import { createRouter } from "next-connect";
 
 const prisma = new PrismaClient();
 const router = createRouter<NextApiRequest, NextApiResponse>();
 
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
+
 router.use(async (req, res, next) => {
   const validations = [
-    query("boxCricketId")
-      .trim()
-      .notEmpty()
-      .withMessage("boxCricketId required"),
+    body("boxCricketId").trim().notEmpty().withMessage("boxCricketId required"),
+    body("date").trim().notEmpty().withMessage("boxCricketId required"),
   ];
   await Promise.all(validations.map((validation) => validation.run(req)));
   const errors = validationResult(req);
@@ -23,14 +25,21 @@ router.use(async (req, res, next) => {
   else res.status(422).json({ status: 422, message: "bad request", err });
 });
 
-router.get(async (req, res) => {
+router.post(async (req, res) => {
   try {
-    const { boxCricketId } = req.query;
-
-    const userBookings = await prisma.userbooking.findMany({
+    const { boxCricketId, date } = req.body;
+    //console.log({ boxCricketId });
+    let userBookings = await prisma.userbooking.findMany({
       where: {
         boxCricketId: boxCricketId as string,
       },
+    });
+
+    userBookings = userBookings.filter((booking) => {
+      return (
+        dayjs(date).format("DD/MM/YYYY") ===
+        dayjs(booking.date).format("DD/MM/YYYY")
+      );
     });
 
     res.status(200).json({ status: 200, userBookings });

@@ -1,18 +1,14 @@
 import { useState } from "react";
+import { StepLabel, Step, Stepper, Box, Container, Card } from "@mui/material";
 
-import { Box, Container, Card } from "@mui/material";
-import Stepper from "@mui/material/Stepper";
-import Step from "@mui/material/Step";
-import StepLabel from "@mui/material/StepLabel";
-
-import SignupStep2 from "../../../../components/owner/Signup/SignupStep2";
-import SignupStep3 from "../../../../components/owner/Signup/SignupStep3";
-import SignupStep1 from "../../../../components/owner/Signup/SignupStep1";
+import OwnerInfo from "./../../../../components/owner/ownerData/OwnerInfo";
+import BoxCricketInfo from "./../../../../components/owner/ownerData/BoxCricketInfo";
+import BoxCricketSlot from "./../../../../components/owner/ownerData/BoxCricketSlot";
 
 const steps = [
-  "Add Owner Details",
-  "Add Your Box cricket Details",
-  "Select Box Cricket Timings",
+  "Owner Details",
+  "Your Box cricket Details",
+  "Box Cricket Timings",
 ];
 
 export interface SignupState {
@@ -64,7 +60,7 @@ const Signup = () => {
             </Box>
 
             {step === 0 && (
-              <SignupStep1
+              <OwnerInfo
                 signupState={signupState}
                 setStep={setStep}
                 setSignupState={setSignupState}
@@ -72,14 +68,14 @@ const Signup = () => {
             )}
 
             {step === 1 && (
-              <SignupStep2
+              <BoxCricketInfo
                 setStep={setStep}
                 signupState={signupState}
                 setSignupState={setSignupState}
               />
             )}
 
-            {step === 2 && <SignupStep3 signupState={signupState} />}
+            {step === 2 && <BoxCricketSlot signupState={signupState} />}
           </Card>
         </Container>
       </Box>

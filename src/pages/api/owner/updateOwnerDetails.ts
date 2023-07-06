@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { PrismaClient } from "@prisma/client";
-import jwt from "jsonwebtoken";
 import { createRouter } from "next-connect";
 import { body, validationResult } from "express-validator";
 
@@ -12,7 +11,10 @@ const router = createRouter<NextApiRequest, NextApiResponse>();
 router.use(async (req, res, next) => {
   //console.log({boxCricketId: req.query.boxCricketId})
   const validations = [
-    body("phone").trim().notEmpty().withMessage("phone is required"),
+    body("ownerPhone").trim().notEmpty().withMessage("owner Phone is required"),
+    body("ownerName").trim().notEmpty().withMessage("owner Name is required"),
+    body("ownerEmail").trim().notEmpty().withMessage("owner Email is required"),
+    body("ownerId").trim().notEmpty().withMessage("owner Id is required"),
   ];
   await Promise.all(validations.map((validation) => validation.run(req)));
   const errors = validationResult(req);
@@ -27,28 +29,26 @@ router.use(async (req, res, next) => {
 
 router.post(async (req, res) => {
   try {
-    const { phone } = req.body;
-    const owner = await prisma.owner.findFirst({
+    const { ownerPhone, ownerName, ownerEmail, ownerId } = req.body;
+    const newOwner = await prisma.owner.update({
       where: {
-        ownerPhone: phone,
+        id: ownerId,
+      },
+      data: {
+        ownerPhone,
+        ownerName,
+        ownerEmail,
       },
     });
 
-    if (owner) {
-      const { ownerPhone, id } = owner;
-      const payload = {
-        ownerId: id,
-        ownerPhone,
-        exp: Date.now() / 1000 + 1 * 60 * 60,
-      };
-      const token = jwt.sign(payload, process.env.JWT_SECRET_KEY || "");
-      res.json({ status: 200, token, owner });
+    if (newOwner) {
+      res.status(200).json({ status: 200, newOwner });
     } else {
-      res.json({ status: 404, message: "owner not found" });
+      res.status(404).json({ status: 404, message: "owner not found" });
     }
   } catch (err) {
     console.error(err);
-    res.json({ status: 500, message: "somthing went wrong" });
+    res.status(500).json({ status: 500, message: "something went wrong" });
   }
 });
 
