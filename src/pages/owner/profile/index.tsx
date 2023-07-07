@@ -26,11 +26,11 @@ dayjs.extend(utc);
 import { Tabs, Spin, message } from "antd";
 import type { TabsProps } from "antd";
 
-import OwnerInfo from "../../../../components/owner/ownerData/ownerInfo";
-import BoxCricketSlot from "../../../../components/owner/ownerData/boxCricketSlot";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import BoxCricketInfo from "../../../../components/owner/ownerData/boxCricketInfo";
+import OwnerInfo from "../../../../components/owner/ownerData/ownerInfo";
+import BoxCricketSlot from "../../../../components/owner/ownerData/BoxCricketSlot";
 
 interface Owner {
   Boxcrickets: any[];
