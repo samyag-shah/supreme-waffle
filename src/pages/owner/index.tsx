@@ -193,7 +193,7 @@ export default function Home() {
       });
       return <>{bookingOfUsers}</>;
     } else {
-      return <Box>You don't have any bookings</Box>;
+      return <Box>{`You don't have any bookings`}</Box>;
     }
   };
 

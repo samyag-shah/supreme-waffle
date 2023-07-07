@@ -62,7 +62,7 @@ const schema = yup
 type FormData = yup.InferType<typeof schema>;
 
 interface FormData1 extends FormData {
-  otp: string;
+  otp?: string;
   id: string;
 }
 
@@ -180,7 +180,7 @@ const OwnerInfo = ({ owner, setStep, setSignupState, signupState }: props) => {
           message: "Please Enter Valid 6 Digit otp",
         });
       otpMessage === "" && verifyUserAndSendOtp(data);
-    } else if (data.otp.length !== 6) {
+    } else if (data.otp?.length !== 6) {
       setError("otp", {
         type: "custom",
         message: "Please Enter Valid 6 Digit otp",

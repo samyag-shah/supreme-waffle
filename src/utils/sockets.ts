@@ -1,8 +1,7 @@
-import { Socket } from "socket.io";
+import { Socket, Server } from "socket.io";
 
-export default (io, socket: Socket) => {
-  const createdMessage = (msg) => {
-    console.log({ msg });
+export default (io: Server, socket: Socket) => {
+  const createdMessage = (msg: any) => {
     socket.broadcast.emit("newIncommingMesssage", msg);
   };
 
