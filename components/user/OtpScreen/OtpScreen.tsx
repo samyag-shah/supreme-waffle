@@ -184,7 +184,7 @@ const OtpScreen = ({
   };
 
   const handleOtp = async () => {
-    console.log("hi");
+    //console.log("hi");
     // try {
     //   setLoading(true);
     //   const confirmationResult = await signInWithPhone(

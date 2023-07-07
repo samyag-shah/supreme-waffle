@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { StepLabel, Step, Stepper, Box, Container, Card } from "@mui/material";
 
-import OwnerInfo from "./../../../../components/owner/ownerData/OwnerInfo";
-import BoxCricketInfo from "./../../../../components/owner/ownerData/BoxCricketInfo";
-import BoxCricketSlot from "./../../../../components/owner/ownerData/BoxCricketSlot";
+import OwnerInfo from "../../../../components/owner/ownerData/ownerInfo";
+import BoxCricketInfo from "../../../../components/owner/ownerData/boxCricketInfo";
+import BoxCricketSlot from "../../../../components/owner/ownerData/boxCricketSlot";
 
 const steps = [
   "Owner Details",

@@ -89,13 +89,13 @@ export default function Home() {
       const result = await response.json();
 
       if (result.status === 200) {
-        console.log({ owner: result.owner });
+        // console.log({ owner: result.owner });
         setOwner(result.owner);
         let boxCrickets = result.owner.Boxcrickets.map((data: BoxCricket) => ({
           id: data.id,
           boxCricketName: data.boxCricketName,
         }));
-        console.log({ boxCrickets });
+        // console.log({ boxCrickets });
         setBoxCricket(boxCrickets);
         setSelectedBoxCricketId(boxCrickets?.[0]?.id);
       } else if (result.status === 401) {

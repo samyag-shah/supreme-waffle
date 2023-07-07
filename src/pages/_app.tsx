@@ -12,6 +12,7 @@ const styles = {
     overflow: "auto",
   },
 };
+
 export default function App({
   Component,
   pageProps: { ...pageProps },

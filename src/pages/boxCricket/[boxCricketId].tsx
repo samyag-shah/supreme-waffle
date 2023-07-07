@@ -320,7 +320,7 @@ const BoxCricket = () => {
     let currentlyAvailableSlots = availableSlots.filter((slot: slot) => {
       return slot.period === period && slot.showSlot;
     });
-    console.log({ currentlyAvailableSlots });
+    // console.log({ currentlyAvailableSlots });
     return (
       <Grid
         item
