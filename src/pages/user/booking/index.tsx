@@ -154,7 +154,7 @@ const Payment = () => {
       });
       const result = await response.json();
       const result1 = await updateCurrentBooking();
-      console.log({ result1 });
+      // console.log({ result1 });
       if (result.status === 201 && result1.status === 200) {
         //console.log("hello");
         localStorage.clear();

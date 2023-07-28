@@ -26,6 +26,7 @@ model Owner {
   ownerEmail            String?  
   createdAt             DateTime   @default(now())
   Boxcrickets           Boxcricket[]
+  notifications         Notification[]
 }
 
 model Boxcricket {
@@ -68,3 +69,13 @@ model Userbooking {
   date         String
   createdAt    DateTime @default(now())
 }
+
+model Notification {
+  id           String @default(cuid()) @id
+  owner        Owner @relation(fields: [ownerId], references: [id])   
+  ownerId      String 
+  message      String 
+  messages     Json
+  createdAt    DateTime @default(now())
+}
+
